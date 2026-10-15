@@ -50,13 +50,13 @@ title: About me
 <div class="about">
 <div class="about-text">
 
-Hi, I'm Redowan - mostly go by the handle **@rednafi** on the web.
+Hi, I'm Redowan, **@rednafi** on the web.
 
-I work at DoorDash/Wolt where I oscillate between product and platform work.
+I oscillate between product and platform work at DoorDash/Wolt.
 
 Interested in databases, streaming, o11y, and failure modes of large-scale distsys.
 
-I maintain a blog **rednafi.com** that gets a few thousand monthly visitors.
+Writing at **rednafi.com**.
 
 <div class="about-links">github.com/rednafi<br>linkedin.com/in/rednafi</div>
 
