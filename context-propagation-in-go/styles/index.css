@@ -1,0 +1,213 @@
+/* Overrides on top of tahta atelier. Keep this file small. */
+
+/* Content starts under the title instead of floating in the middle. */
+.l-topic .l-body { justify-content: flex-start; padding-top: var(--sp-6); }
+.l-topic .l-body > .fit { justify-content: flex-start; height: auto; flex: 1; }
+.two-cols { gap: var(--sp-8); align-items: start; }
+.two-cols .col > * + * { margin-top: var(--sp-4); }
+.wide-left .two-cols { grid-template-columns: 3fr 2fr; }
+.wide-right .two-cols { grid-template-columns: 2fr 3fr; }
+.even .two-cols { grid-template-columns: 1fr 1fr; }
+
+/* Every monospace surface uses JetBrains Mono. */
+code, pre, kbd, samp, .font-mono, .slidev-code, .slidev-code *, .shiki, .shiki *, .terminal, .terminal * {
+  font-family: var(--font-mono) !important;
+}
+.slidev-layout pre, .slidev-layout .slidev-code { font-size: 0.86rem !important; line-height: 1.6 !important; }
+.slidev-layout pre { padding: 0.9rem 1.1rem !important; }
+
+/* Code panel: blocks inside one <Code> join into a single panel. */
+.codebox { width: 100%; padding-right: var(--gutter, 0px); }
+.codebox-file { font-family: var(--font-mono); font-size: 0.7rem; color: var(--fg-dim); margin: 0 0 0.4rem 0.1rem; }
+.codebox-body { position: relative; }
+.codebox-body pre { margin: 0 !important; }
+.codebox-body .slidev-code-wrapper { margin: 0 !important; }
+.codebox-body > :not(:first-child) pre,
+.codebox-body > div:not(:first-child) pre { border-top: 0 !important; border-top-left-radius: 0 !important; border-top-right-radius: 0 !important; padding-top: 0 !important; }
+.codebox-body > :has(+ div > .slidev-code-wrapper) pre,
+.codebox-body > :has(+ div pre) pre { border-bottom: 0 !important; border-bottom-left-radius: 0 !important; border-bottom-right-radius: 0 !important; padding-bottom: 0 !important; }
+.codebox + .terminal, .codebox + .codebox, .terminal + .codebox, .codebox + div > .terminal, .codebox + div > .codebox { margin-top: var(--sp-4); }
+
+/* Arrow + label from the gutter to a code line. */
+.mark { position: absolute; display: flex; align-items: center; gap: 6px; transform: translateY(-50%); pointer-events: none; z-index: 2; }
+.mark-arrow { flex: none; overflow: visible; }
+.mark-arrow line, .mark-arrow polyline { stroke: var(--accent); stroke-width: 1.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.mark-label { flex: none; color: var(--accent); font: 600 0.8rem/1.3 var(--font-body); }
+
+/* Plain quote under content. No box. */
+.slidev-layout blockquote.note, .slidev-layout .pull {
+  border: 0; background: none; padding: 0; margin-top: var(--sp-6);
+  color: var(--fg-dim); font-size: 0.95rem; line-height: 1.45; font-style: italic;
+}
+.pull cite { display: block; margin-top: 0.35rem; font-style: normal; font-size: 0.75rem; letter-spacing: 0.02em; color: var(--fg-dim); }
+
+/* Bullets a touch bigger than the theme default so slides don't look empty. */
+.l-topic .l-body ul li, .l-topic .l-body ol li { font-size: 1.12rem; line-height: 1.45; margin: 0.35rem 0; }
+.l-topic .l-body p { font-size: 1.1rem; line-height: 1.5; }
+.l-topic .l-body .muted { color: var(--fg-dim); }
+
+/* Gopher art. */
+.gopher { display: block; margin: 0 auto; max-height: 15rem; width: auto; }
+.gopher.sm { max-height: 11rem; }
+.gopher.right { margin: 0 0 0 auto; }
+
+/* Column heading inside two-cols bodies. */
+.col-h { font-family: var(--font-body); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.2rem; }
+
+/* References. */
+.refs { columns: 2; column-gap: 2.4rem; }
+.refs h4 { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.3rem; break-after: avoid; }
+.refs ul { margin: 0 0 0.9rem; padding-left: 1rem; break-inside: avoid-column; }
+.refs li { font-size: 0.74rem !important; line-height: 1.35 !important; margin: 0.12rem 0 !important; }
+.refs a { color: var(--fg); text-decoration: none; border-bottom: 1px solid var(--line); }
+
+/* Footer counter. */
+.foot-pg { font-variant-numeric: tabular-nums; }
+
+/* No ligatures in code: != stays != on a slide. */
+code, pre, .shiki, .shiki *, .slidev-code, .slidev-code * { font-variant-ligatures: none !important; font-feature-settings: "liga" 0, "calt" 0 !important; }
+
+/* Short points in a row under a code panel. */
+.points { margin-top: var(--sp-6); }
+.points ul { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: var(--sp-8); list-style: none; padding: 0; margin: 0; }
+.points li { margin: 0 !important; padding-top: 0.6rem; border-top: 2px solid color-mix(in oklab, var(--accent) 55%, transparent); font-size: 1.05rem !important; line-height: 1.4 !important; }
+.points li::marker { content: none; }
+
+/* Numbered checklist. */
+.checklist ol { padding-left: 1.6rem; }
+.checklist li { list-style: decimal; font-size: 1.25rem !important; margin: 0.55rem 0 !important; }
+.checklist li::marker { color: var(--accent); font-weight: 700; }
+
+/* Section titles stay on one line where they can. */
+h1.fs-section { max-width: 24ch; }
+
+/* Define layout points a little larger. */
+.slidev-layout ul.define-points li, .define-points li { font-size: 1.15rem !important; }
+
+/* Simple table. */
+.slidev-layout table { width: 100%; border-collapse: collapse; font-size: 1rem; }
+.slidev-layout th { text-align: left; color: var(--accent); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--line); }
+.slidev-layout td { padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--line); }
+
+.refs li { font-size: 0.86rem !important; }
+.tl-desc { font-size: 1.02rem; }
+.tl-title { font-size: 1.3rem; }
+.points li::before { display: none !important; content: none !important; }
+.points li { padding-left: 0 !important; }
+.l-topic h1.fs-section.mw-title { max-width: 26ch; }
+.mark-label { font-size: 0.86rem; }
+.diagram-note { max-width: 72ch; }
+* { font-variant-ligatures: none; }
+.stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-12); margin-top: var(--sp-12); }
+* { font-feature-settings: "calt" 0, "liga" 0 !important; font-variant-ligatures: none !important; }
+.l-topic h1.fs-section, .l-topic h1.fs-section.mw-title { max-width: none !important; }
+.l-topic h1.fs-section { font-size: 4rem; }
+.lead-line { margin: 0.55rem 0 0; color: var(--fg-dim); font-size: 1.12rem; line-height: 1.4; max-width: 62rem; }
+.lead-line code { font-size: 0.95em; }
+.l-topic .l-head { max-width: none !important; } .lead-line { max-width: 60rem !important; }
+
+/* Overview: what's coming, one line per part. */
+.overview { display: grid; gap: 0; margin-top: var(--sp-2); }
+.ov-item { display: grid; grid-template-columns: 4.5rem 1fr; align-items: baseline; padding: 1rem 0; border-top: 1px solid var(--line); }
+.ov-item:last-child { border-bottom: 1px solid var(--line); }
+.ov-num { font: 800 1.7rem/1 var(--font-display); color: var(--accent); }
+.ov-topic { font: 700 1.6rem/1.2 var(--font-display); letter-spacing: -0.01em; }
+.ov-desc { color: var(--fg-dim); font-size: 1.08rem; margin-top: 0.3rem; }
+
+/* API list: code on the left, what it does under it. */
+.apis { display: grid; gap: 0; }
+.api { padding: 0.85rem 0; border-top: 1px solid var(--line); }
+.api code { display: block; font-size: 1.05rem; color: var(--fg); margin-bottom: 0.25rem; }
+.api span { color: var(--fg-dim); font-size: 1rem; }
+.api span code { display: inline; font-size: 0.92em; color: var(--fg-dim); }
+
+/* What a context is for. */
+.uses { display: grid; gap: 0; }
+.use { display: grid; grid-template-columns: 14rem 1fr 10rem; align-items: baseline; padding: 1.15rem 0; border-top: 1px solid var(--line); }
+.use:last-child { border-bottom: 1px solid var(--line); }
+.use-term { font: 800 1.9rem/1 var(--font-display); letter-spacing: -0.02em; }
+.use-desc { font-size: 1.15rem; }
+.use-tag { justify-self: end; font: 600 0.78rem/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.use-tag.dim { color: var(--fg-dim); }
+
+/* Three ways it breaks. */
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 2.6rem; margin-top: 1rem; }
+.fail { border-top: 2px solid color-mix(in oklab, var(--accent) 55%, transparent); padding-top: 1rem; }
+.fail-num { font: 800 3rem/1 var(--font-display); color: var(--accent); margin-bottom: 0.8rem; }
+.fail-title { font: 700 1.45rem/1.2 var(--font-display); margin-bottom: 0.7rem; }
+.fail-sym { font-family: var(--font-mono); font-size: 0.92rem; line-height: 1.5; color: var(--fg); margin-bottom: 0.6rem; }
+.fail-why { color: var(--fg-dim); font-size: 1.02rem; }
+.center-note { margin-top: 2.6rem !important; font-size: 1.15rem !important; }
+
+/* One big question under a timeline. */
+.big-q { margin-top: var(--sp-12); font: 700 2.1rem/1.2 var(--font-display); letter-spacing: -0.02em; color: var(--fg); }
+.l-topic .l-body .mermaid, .l-topic .l-body svg[id^="mermaid"] { max-width: 100%; }
+.wide-left .two-cols { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+.wide-right .two-cols { grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); }
+.even .two-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.fail-sym { font-family: var(--font-body) !important; font-size: 1.05rem !important; font-style: italic; }
+.api { padding: 0.6rem 0; }
+.api code { font-size: 1rem; }
+
+/* Linter rules: code, then what happens. */
+.rules { display: grid; }
+.rule { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: var(--sp-6); align-items: baseline; padding: 0.9rem 0; border-top: 1px solid var(--line); }
+.rule:last-child { border-bottom: 1px solid var(--line); }
+.rule code { font-size: 1.02rem; color: var(--fg); }
+.rule span { color: var(--fg-dim); font-size: 1.05rem; }
+.big-q { font-size: 1.7rem !important; line-height: 1.3 !important; }
+.ov-item { grid-template-columns: 4rem 1fr; padding: 0.72rem 0; align-items: center; }
+.ov-topic { font-size: 1.45rem; }
+
+/* Quote slides: center the quote column on the slide, keep one left edge. */
+
+
+/* ---- Quiet design pass ---- */
+/* Code: bigger, no border; Fit scales a slide down when it overflows. */
+.slidev-layout pre, .slidev-layout .slidev-code { font-size: 0.9rem !important; line-height: 1.6 !important; }
+.codebox-body pre, .slidev-layout pre { border: 0 !important; box-shadow: none !important; }
+.mark-label { font-size: 0.92rem; }
+.codebox + ul, .codebox + div > ul, .codebox ~ ul { margin-top: var(--sp-6); }
+
+/* One takeaway line under the main content. */
+.l-topic .l-body p.take { margin-top: var(--sp-6); font-size: 1.25rem; line-height: 1.45; color: var(--fg-dim); max-width: 62rem; }
+.take code { color: var(--fg); }
+
+/* Bug list: what happens, why, where it's fixed. No boxes. */
+.bugs { display: grid; gap: 1.6rem; margin-top: var(--sp-6); }
+.bug { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) 5rem; gap: var(--sp-8); align-items: baseline; }
+.bug-what { font: 700 1.6rem/1.2 var(--font-display); letter-spacing: -0.01em; }
+.bug-why { color: var(--fg-dim); font-size: 1.2rem; line-height: 1.4; }
+.bug-part { justify-self: end; font: 600 0.85rem/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+
+/* Outcome rows: situation, then what you get. */
+.paths { display: grid; gap: 0.9rem; margin-top: var(--sp-8); }
+.path { display: grid; grid-template-columns: 18rem 1fr; align-items: baseline; font-size: 1.25rem; }
+.path span { color: var(--fg-dim); }
+.path code { font-size: 1.1rem; color: var(--fg); }
+
+/* No rules between rows. */
+.rule, .rule:last-child, .ov-item, .ov-item:last-child { border: 0 !important; }
+.rule { padding: 0.75rem 0; }
+.rule code { font-size: 1.15rem; }
+.rule span { font-size: 1.15rem; }
+.ov-item { padding: 0.9rem 0; }
+.ov-topic { font-size: 1.7rem; }
+
+/* Never show a scrollbar on a slide. */
+.slidev-layout pre, .slidev-layout .slidev-code, .slidev-layout .slidev-code-wrapper { overflow: hidden !important; scrollbar-width: none !important; }
+.slidev-layout pre::-webkit-scrollbar, .slidev-layout *::-webkit-scrollbar { display: none !important; }
+
+/* Closing line under the timeline: smaller than the title. */
+.big-q { font: 500 1.3rem/1.45 var(--font-body) !important; letter-spacing: 0 !important; color: var(--fg-dim) !important; margin-top: var(--sp-10) !important; }
+
+/* Quotes under content: readable size. */
+.slidev-layout .pull { font-size: 1.2rem !important; line-height: 1.45 !important; }
+.pull cite { font-size: 0.85rem !important; }
+
+/* Quotes inside slides match the quote slides: serif text, the same opening mark. */
+.slidev-layout .pull { font-family: var(--font-serif) !important; font-style: normal !important; font-weight: 500; color: var(--fg) !important; }
+.slidev-layout .pull::before { content: "\201C"; display: block; font: 600 3.2rem/0.55 var(--font-serif); color: var(--accent); margin-bottom: 0.35rem; }
+.pull cite { font-family: var(--font-body); color: var(--fg-dim); }
+.slidev-layout .pull { color: var(--fg-dim) !important; }
+.slidev-layout .pull::before { opacity: 0.6; }
