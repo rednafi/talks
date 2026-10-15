@@ -11,14 +11,14 @@ type N = { id: string; x: number; y: number; label: string; ctx?: boolean; at: n
 const W = 140, H = 36
 const nodes: N[] = [
   { id: 'root', x: 300, y: 24, label: 'Background()', ctx: true, at: 0 },
-  { id: 'req', x: 300, y: 100, label: 'request ctx', ctx: true, at: 0, stop: 6 },
-  { id: 't', x: 147, y: 180, label: 'WithTimeout(2s)', ctx: true, at: 2, stop: 5 },
-  { id: 'v', x: 453, y: 180, label: 'WithValue(trace)', ctx: true, at: 3, stop: 6 },
-  { id: 'db', x: 72, y: 262, label: 'db query', at: 2, stop: 5 },
-  { id: 'rpc', x: 222, y: 262, label: 'inventory RPC', at: 2, stop: 5 },
-  { id: 'log', x: 378, y: 262, label: 'logger', at: 3, stop: 6 },
-  { id: 'wc', x: 528, y: 262, label: 'WithoutCancel', ctx: true, at: 4 },
-  { id: 'audit', x: 528, y: 344, label: 'audit write', at: 4 },
+  { id: 'req', x: 300, y: 136, label: 'request ctx', ctx: true, at: 0, stop: 6 },
+  { id: 't', x: 147, y: 250, label: 'WithTimeout(2s)', ctx: true, at: 2, stop: 5 },
+  { id: 'v', x: 453, y: 250, label: 'WithValue(trace)', ctx: true, at: 3, stop: 6 },
+  { id: 'db', x: 72, y: 364, label: 'db query', at: 2, stop: 5 },
+  { id: 'rpc', x: 222, y: 364, label: 'inventory RPC', at: 2, stop: 5 },
+  { id: 'log', x: 378, y: 364, label: 'logger', at: 3, stop: 6 },
+  { id: 'wc', x: 528, y: 364, label: 'WithoutCancel', ctx: true, at: 4 },
+  { id: 'audit', x: 528, y: 478, label: 'audit write', at: 4 },
 ]
 const by = Object.fromEntries(nodes.map(n => [n.id, n]))
 const edges = [['root', 'req'], ['req', 't'], ['req', 'v'], ['t', 'db'], ['t', 'rpc'], ['v', 'log'], ['v', 'wc'], ['wc', 'audit']]
@@ -32,7 +32,7 @@ const path = (a: N, b: N) => {
 </script>
 
 <template>
-  <svg class="ctree" viewBox="0 0 600 372" xmlns="http://www.w3.org/2000/svg">
+  <svg class="ctree" viewBox="0 6 600 492" preserveAspectRatio="xMidYMin meet" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <marker id="ct-arrow" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto">
         <path d="M0,0 L8,4 L0,8 z" fill="currentColor" />
@@ -46,16 +46,16 @@ const path = (a: N, b: N) => {
       <text :x="n.x" :y="n.y + 4.5">{{ n.label }}</text>
     </g>
     <g class="event" :class="{ on: c === 5 }">
-      <text x="136" y="154" class="end">timeout fires</text>
+      <text x="136" y="214" class="end">timeout fires</text>
     </g>
     <g class="event" :class="{ on: c >= 6 }">
-      <text x="380" y="105" class="start">client hangs up</text>
+      <text x="380" y="141" class="start">client hangs up</text>
     </g>
   </svg>
 </template>
 
 <style scoped>
-.ctree { width: 100%; height: auto; overflow: visible; }
+.ctree { width: 100%; height: 20rem; overflow: visible; }
 .node, .edge { opacity: 0; transition: opacity 0.4s ease, transform 0.4s ease; }
 .node { transform: translateY(6px); transform-box: fill-box; }
 .node.on, .edge.on { opacity: 1; transform: none; }

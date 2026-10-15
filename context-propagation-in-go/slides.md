@@ -137,7 +137,7 @@ title: Overview
 <div class="overview">
 <div class="ov-item" v-click>
   <div class="ov-num">01</div>
-  <div class="ov-topic">What a context is, and how code breaks it</div>
+  <div class="ov-topic">What's a context?</div>
 </div>
 <div class="ov-item" v-click>
   <div class="ov-num">02</div>
@@ -158,7 +158,7 @@ title: Overview
 </div>
 
 <!--
-[click] First, what a context is, and the ways I see code break it. That part defines the problem.
+[click] First, what a context is, and the bugs I see around it. That part defines the problem.
 
 The rest is advice. Each slide is one habit, with the bug it prevents. [click] Some are about passing the context down, [click] some about recording why it stopped, [click] and some about values. [click] The last part shows linters that check the habits for you.
 -->
@@ -246,7 +246,7 @@ The runtime can't stop that work for us.
 ---
 layout: default
 kicker: What's a context?
-title: context.Context carries the stop signal and the deadline
+title: context.Context
 ---
 
 <div class="pull pull-top">
@@ -290,27 +290,25 @@ This is the whole interface. [click] Deadline tells the work when to give up. [c
 -->
 
 ---
-layout: two-cols
-class: even
+layout: default
 kicker: What's a context?
 clicks: 6
 title: Each With function wraps a parent, so contexts form a tree
 ---
 
-<div class="apis">
+<div class="tree-grid">
+<div class="apis tight">
+<div class="api"><code>Background()</code><span>The root, with no deadline and no cancel</span></div>
 <div class="api" v-click="1"><code>WithCancel(parent)</code><span>Stop when the code calls cancel</span></div>
-<div class="api" v-click="2"><code>WithTimeout(parent, d)</code><span>Stop after a duration, or at a time with <code>WithDeadline</code></span></div>
+<div class="api" v-click="2"><code>WithTimeout(parent, d)</code><span>Stop after a duration. <code>WithDeadline</code> stops at a time</span></div>
 <div class="api" v-click="3"><code>WithValue(parent, k, v)</code><span>Add one value</span></div>
 <div class="api" v-click="4"><code>WithoutCancel(parent)</code><span>Keep the values and drop the stop signal (Go 1.21)</span></div>
 </div>
-
-::right::
-
 <CtxTree />
-
 <div class="stack">
 <p class="muted" v-click="[5, 6]">The 2s timeout stops only the branch below it.</p>
 <p class="muted" v-click="6">When the client hangs up, everything below the request stops, except the WithoutCancel branch.</p>
+</div>
 </div>
 
 <!--
@@ -542,12 +540,12 @@ title: The rules have been written down since 2014
   </div>
 </div>
 
-<p v-click class="big-q">The docs explain how to pass a context. They say little about how it breaks, or how to find out why one was canceled.</p>
+<p v-click class="big-q">The docs explain how to pass a context. They say little about how it breaks in production.</p>
 
 <!--
 The rules are not new. [click] The Go blog had them in 2014. [click] context joined the standard library in Go 1.7. [click] The Go blog added a post on structs in 2021. [click] Google published its Go style guide in November 2022. [click] Causes and WithoutCancel came in 2023.
 
-[click] I still find the same bugs in code review every month. The docs explain how to pass a context. They say much less about how it breaks, and they don't help you debug a cancel.
+[click] I still find the same bugs in code review every month. The docs explain how to pass a context. They say much less about how it breaks in production.
 -->
 
 ---
@@ -1384,7 +1382,7 @@ Most of the advice so far can be checked by a tool.
 ---
 layout: default
 kicker: Enforcing the rules
-title: Make every cancel take a cause
+title: Wrap the constructors so every cancel needs a cause
 ---
 
 <Code gutter="16rem">

@@ -238,3 +238,14 @@ html.print .slidev-layout::before { display: none !important; }
 /* Gradient h1: background-clip:text paints only inside the box, so give descenders (g, p, y) room. */
 :root[data-variant='atelier'] h1 { padding-bottom: 0.14em; margin-bottom: -0.14em; }
 .stack { display: grid; } .stack > * { grid-area: 1 / 1; }
+/* Context tree slide: the list on the left spans the tree's height, root to leaf. */
+.tree-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 2.5rem; row-gap: 1.2rem; align-items: stretch; }
+.tree-grid > .apis { grid-row: 1; grid-column: 1; height: 0; min-height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+.tree-grid > svg { grid-row: 1; grid-column: 2; align-self: start; }
+.tree-grid > .stack { grid-row: 2; grid-column: 2; }
+.tree-grid .stack p { margin: 0; }
+.slidev-layout .apis.tight .api { padding: 0.3rem 0 0 !important; }
+.slidev-layout .apis.tight .api:first-child { border-top: 0; padding-top: 0 !important; }
+.slidev-layout .apis.tight .api code { font-size: 1rem !important; margin-bottom: 0.1rem !important; }
+.slidev-layout .apis.tight .api span { font-size: 0.95rem !important; }
+.slidev-layout .apis.tight .api span code { font-size: 0.92em !important; display: inline; }
