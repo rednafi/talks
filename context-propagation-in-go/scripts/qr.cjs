@@ -1,5 +1,5 @@
 const QR=require('qrcode');
-const url='https://github.com/rednafi/talks/blob/main/context-propagation-in-go/slides.pdf';
+const url='https://cdn.jsdelivr.net/gh/rednafi/talks@main/context-propagation-in-go/slides.pdf';
 const q=QR.create(url,{errorCorrectionLevel:'H'});
 const n=q.modules.size, d=q.modules.data, m=3, S=n+2*m;
 const fg='#e9ecf5', ring='#8590ff', fg2='#e9ecf5', bg='#141824';

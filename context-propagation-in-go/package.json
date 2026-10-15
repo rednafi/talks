@@ -15,6 +15,7 @@
     "vue": "latest"
   },
   "devDependencies": {
-    "playwright-chromium": "latest"
+    "playwright-chromium": "latest",
+    "qrcode": "^1.5.4"
   }
 }

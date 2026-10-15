@@ -30,7 +30,7 @@ class: qr-slide
 
 <div class="qr">
   <div class="qr-code">
-    <img src="/img/qr-pdf.svg?v=3" alt="QR code to the PDF of these slides" />
+    <img src="/img/qr-pdf.svg?v=4" alt="QR code to the PDF of these slides" />
     <img class="qr-gopher" src="/img/gopher-standing.svg" alt="" />
   </div>
   <p>Scan to get the slides</p>
