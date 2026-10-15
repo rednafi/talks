@@ -27,28 +27,45 @@ This talk is about context.Context: why Go has it, how it moves through a progra
 
 ---
 layout: default
-kicker: About me
-title: Redowan Delowar
+class: qr-slide
+---
+
+<div class="qr">
+  <div class="qr-code">
+    <img src="/img/qr-pdf.svg?v=3" alt="QR code to the PDF of these slides" />
+    <img class="qr-gopher" src="/img/gopher-standing.svg" alt="" />
+  </div>
+  <p>Scan for the slides as a PDF</p>
+  <span>github.com/rednafi/talks</span>
+</div>
+
+<!--
+Before I start: this code opens a PDF of the slides, so there's no need to take photos.
+-->
+---
+layout: default
+title: About me
 ---
 
 <div class="about">
 <div class="about-text">
 
-Product and platform engineer at Wolt, part of DoorDash, in Berlin.
+Hi, I'm Redowan - mostly go by the handle **@rednafi** on the web.
 
-I write about Go and distributed systems at **rednafi.com**.
+I work at DoorDash/Wolt where I oscillate between product and platform work.
 
-<span class="about-links">github.com/rednafi</span>
+Interested in databases, streaming, o11y, and failure modes of large-scale distsys.
+
+I maintain a blog **rednafi.com** that gets a few thousand monthly visitors.
+
+<div class="about-links">github.com/rednafi<br>linkedin.com/in/rednafi</div>
 
 </div>
-<figure class="about-qr">
-  <img src="/img/qr-pdf.svg" alt="QR code to the PDF of these slides" />
-  <figcaption>Slides as a PDF</figcaption>
-</figure>
+<img class="about-gopher" src="/img/gopher-hiking.svg" alt="" />
 </div>
 
 <!--
-I switch between product and platform work, and I care most about how distributed systems fail at scale. The QR code opens a PDF of these slides, so you don't need to take photos.
+I oscillate between product and platform work, and I care most about how distributed systems fail at scale.
 -->
 ---
 layout: quote
