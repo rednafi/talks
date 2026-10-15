@@ -33,8 +33,8 @@ class: qr-slide
     <img src="/img/qr-pdf.svg?v=3" alt="QR code to the PDF of these slides" />
     <img class="qr-gopher" src="/img/gopher-standing.svg" alt="" />
   </div>
-  <p>Scan for the slides as a PDF</p>
-  <span>github.com/rednafi/talks</span>
+  <p>Scan to get the slides</p>
+  <span>https://rednafi.com/appearances</span>
 </div>
 
 <!--
