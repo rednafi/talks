@@ -42,7 +42,8 @@ Before I start: this code opens a PDF of the slides, so there's no need to take 
 -->
 ---
 layout: default
-title: About me
+class: whoami
+title: "$ whoami"
 ---
 
 <div class="about">
