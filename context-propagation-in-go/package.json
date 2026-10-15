@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "slidev --open",
     "build": "slidev build",
-    "export": "slidev export",
+    "export": "slidev export --output slides.pdf",
     "lint": "tahta-lint slides.md"
   },
   "dependencies": {

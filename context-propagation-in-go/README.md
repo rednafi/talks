@@ -7,10 +7,11 @@ A 40-minute talk built with [Slidev](https://sli.dev) and the
 pnpm install
 pnpm dev       # http://localhost:3030, presenter view at /presenter
 pnpm build     # static site in dist/
-pnpm export    # PDF (needs playwright-chromium)
+pnpm export    # PDF to slides.pdf (needs playwright-chromium)
 pnpm lint      # tahta-lint
 ```
 
+- `slides.pdf`: the deck as a PDF (the QR code on slide 2 opens it)
 - `slides.md`: the deck and the speaker notes
 - `components/`: `Code` and `Mark` (arrows to code lines), `TwoLevels`
   (diagram), and overrides of tahta's `Foot` (section slides aren't counted) and

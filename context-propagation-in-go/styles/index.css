@@ -211,3 +211,15 @@ h1.fs-section { max-width: 24ch; }
 .pull cite { font-family: var(--font-body); color: var(--fg-dim); }
 .slidev-layout .pull { color: var(--fg-dim) !important; }
 .slidev-layout .pull::before { opacity: 0.6; }
+
+/* About me */
+.about { display: grid; grid-template-columns: 1fr auto; gap: var(--sp-12, 3rem); align-items: center; height: 100%; }
+.about-text p { font-size: 1.7rem; line-height: 1.4; margin: 0 0 1.1rem; color: var(--fg); }
+.about-text strong { color: var(--accent); font-weight: 600; }
+.about-links { font: 1.1rem var(--font-mono); color: var(--fg-dim); }
+.about-qr { margin: 0; text-align: center; }
+.about-qr img { width: 15rem; height: 15rem; border-radius: 10px; display: block; }
+.about-qr figcaption { margin-top: 0.8rem; font-size: 1rem; color: var(--fg-dim); }
+
+/* PDF export: drop the grain, which Chrome turns into a full-page image on every page. */
+html.print .slidev-layout::before { display: none !important; }

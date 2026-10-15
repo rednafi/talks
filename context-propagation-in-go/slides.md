@@ -26,6 +26,31 @@ This talk is about context.Context: why Go has it, how it moves through a progra
 -->
 
 ---
+layout: default
+kicker: About me
+title: Redowan Delowar
+---
+
+<div class="about">
+<div class="about-text">
+
+Product and platform engineer at Wolt, part of DoorDash, in Berlin.
+
+I write about Go and distributed systems at **rednafi.com**.
+
+<span class="about-links">github.com/rednafi</span>
+
+</div>
+<figure class="about-qr">
+  <img src="/img/qr-pdf.svg" alt="QR code to the PDF of these slides" />
+  <figcaption>Slides as a PDF</figcaption>
+</figure>
+</div>
+
+<!--
+I switch between product and platform work, and I care most about how distributed systems fail at scale. The QR code opens a PDF of these slides, so you don't need to take photos.
+-->
+---
 layout: quote
 quote: "A distributed system is one in which the failure of a computer you didn't even know existed can render your own computer unusable."
 author: Leslie Lamport, 1987
