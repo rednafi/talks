@@ -606,7 +606,7 @@ title: Pass ctx as the first argument, all the way down
 <Code gutter="15rem">
 
 ```go
-// Don't: a new root in the middle of the chain.
+// Don't: start a new context here.
 return s.store.Find(context.Background(), id)
 ```
 
@@ -616,7 +616,7 @@ return s.store.Find(context.Background(), id)
 
 ```go
 
-// Do: pass the caller's ctx.
+// Do: pass the caller's context.
 return s.store.Find(ctx, id)
 ```
 
@@ -652,7 +652,7 @@ title: Pass ctx to each call instead of storing it in a struct
 <Code gutter="15rem">
 
 ```go
-// Don't: every call uses the context from when the struct was built.
+// Don't: keep the context in a struct.
 type Notifier struct {
     ctx    context.Context
     client *sms.Client
@@ -665,7 +665,7 @@ type Notifier struct {
 
 ```go
 
-// Do: each caller passes its own.
+// Do: pass the context to each call.
 func (n *Notifier) Send(ctx context.Context, msg string) error {
     return n.client.Send(ctx, msg)
 }
@@ -697,7 +697,7 @@ title: Wait on the timer and ctx.Done() together
 <Code gutter="15rem">
 
 ```go
-// Don't: the retry sleeps through a cancel.
+// Don't: sleep without a check for cancel.
 time.Sleep(backoff(attempt))
 ```
 
@@ -707,7 +707,7 @@ time.Sleep(backoff(attempt))
 
 ```go
 
-// Do: return on whichever comes first.
+// Do: stop the wait when ctx is done.
 select {
 case <-time.After(backoff(attempt)):
 case <-ctx.Done():
@@ -747,7 +747,7 @@ title: Detach work that has to outlive the request, then bound it
 <Code gutter="17rem">
 
 ```go
-// Don't: canceled when the handler returns.
+// Don't: use the request context here.
 go h.audit.Write(r.Context(), orderID)
 ```
 
@@ -757,7 +757,7 @@ go h.audit.Write(r.Context(), orderID)
 
 ```go
 
-// Do: keep the values, drop the cancel, add a bound.
+// Do: keep the values and set a new timeout.
 detached := context.WithoutCancel(r.Context())
 h.pool.Submit(func() {
     ctx, cancel := context.WithTimeout(detached, 5*time.Second)
@@ -1210,7 +1210,7 @@ title: Use an unexported key type, so keys can't collide
 <Code gutter="14rem">
 
 ```go
-// Don't: two packages pick the same string.
+// Don't: use a string as the key.
 ctx = context.WithValue(ctx, "user", "alice")     // package auth
 ctx = context.WithValue(ctx, "user", "audit-bot") // package audit
 ctx.Value("user")                                 // "audit-bot"
@@ -1222,7 +1222,7 @@ ctx.Value("user")                                 // "audit-bot"
 
 ```go
 
-// Do: a key type that only this package can name.
+// Do: use an unexported key type.
 package auth
 
 type ctxKey struct{}
@@ -1303,7 +1303,7 @@ title: Don't hide a dependency in a context
 <Code gutter="15rem">
 
 ```go
-// Don't do this.
+// Don't: find the transaction in the context.
 func (s *BookStore) Create(ctx context.Context, b Book) (int64, error) {
     var db DBTX = s.db
     if tx, ok := TxFromContext(ctx); ok {
@@ -1319,7 +1319,7 @@ func (s *BookStore) Create(ctx context.Context, b Book) (int64, error) {
 
 ```go
 
-// Do this: the transaction is an argument.
+// Do: pass the transaction as an argument.
 err := store.Tx(ctx, func(tx book.Store) error {
     // use tx for every write
 })
