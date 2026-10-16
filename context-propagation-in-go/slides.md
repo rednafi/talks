@@ -84,7 +84,7 @@ Lamport wrote this in an email at DEC in 1987. A timeout works the same way as a
 layout: two-cols
 class: wide-left
 kicker: The problem
-title: The log says a context stopped, but not why
+title: The log says a context stopped, but it hides the reason
 ---
 
 <Terminal title="order-service" :lines="[
@@ -222,8 +222,8 @@ title: Go can't stop a goroutine from the outside
 
 <v-clicks>
 
-- A goroutine has no handle and no kill method
-- You must send the work a signal, and the work must stop itself
+- A goroutine has no kill method
+- So you send the work a signal, and the work stops itself
 - All goroutines for one request need the same signal
 - The signal also needs a time limit
 
@@ -272,7 +272,7 @@ type Context interface {
 ```
 
 <Mark :line="2" v-click="2">when to give up</Mark>
-<Mark :line="3" v-click="3">closes when the work must stop</Mark>
+<Mark :line="3" v-click="3">closes when the work should stop</Mark>
 <Mark :line="4" v-click="4">Canceled or DeadlineExceeded</Mark>
 <Mark :line="5" v-click="5">data about the request</Mark>
 
@@ -282,8 +282,8 @@ type Context interface {
 <div class="points" style="--n: 2">
 <v-clicks at="6">
 
-- There is no `Cancel` method. Code that gets the signal can't send it
-- A context doesn't change. To add a deadline or a value, make a child context
+- Only the code that creates a context can cancel it
+- A context is read-only. To add a deadline or a value, make a child context
 
 </v-clicks>
 </div>
@@ -305,7 +305,7 @@ title: Each With function makes a child, so contexts form a tree
 
 <div class="tree-grid">
 <div class="apis tight">
-<div class="api"><code>Background()</code><span>The root, with no deadline and no cancel</span></div>
+<div class="api"><code>Background()</code><span>The empty root context</span></div>
 <div class="api" v-click="1"><code>WithCancel(parent)</code><span>Stop when the code calls cancel</span></div>
 <div class="api" v-click="2"><code>WithTimeout(parent, d)</code><span>Stop after a duration. <code>WithDeadline</code> stops at a time</span></div>
 <div class="api" v-click="3"><code>WithValue(parent, k, v)</code><span>Add one value</span></div>
@@ -415,7 +415,7 @@ If any layer drops ctx, every layer under it loses the signal.
 ---
 layout: default
 kicker: Context basics
-title: Canceling a context doesn't stop code that never checks it
+title: A cancel stops only the code that checks the context
 ---
 
 <Code gutter="15rem">
@@ -457,8 +457,8 @@ func resizeAll(ctx context.Context, images []Image) error {
 <div class="points" style="--n: 2">
 <v-clicks>
 
-- `cancel()` only closes the `Done` channel. It doesn't stop any goroutine
-- Every loop and every wait must check `ctx`, or pass it to code that checks it
+- `cancel()` only closes the `Done` channel
+- Make every loop and every wait check `ctx`, or pass it to code that checks it
 
 </v-clicks>
 </div>
@@ -562,7 +562,7 @@ title: Most context bugs I see are in these groups
 <div class="three" style="grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 1.8rem">
 <div class="fail" v-click>
   <div class="fail-num">1</div>
-  <div class="fail-title">Work that does not stop</div>
+  <div class="fail-title">Work that runs too long</div>
   <div class="fail-why">The client left, but the query continues.</div>
 </div>
 <div class="fail" v-click>
@@ -572,7 +572,7 @@ title: Most context bugs I see are in these groups
 </div>
 <div class="fail" v-click>
   <div class="fail-num">3</div>
-  <div class="fail-title">A stop with no reason</div>
+  <div class="fail-title">A stop with an unknown reason</div>
   <div class="fail-why">The log says only context canceled.</div>
 </div>
 <div class="fail" v-click>
@@ -777,7 +777,7 @@ h.pool.Submit(func() {
 <v-clicks>
 
 - `context.Background()` also works, but it loses the trace ID and the log fields
-- With a pool, shutdown can wait for the work. A bare `go` statement can't
+- Use a pool, so shutdown can wait for the work
 
 </v-clicks>
 </div>
@@ -911,7 +911,7 @@ The "completed" cause on the deferred cancel matters. A colleague at DoorDash de
 ---
 layout: default
 kicker: Recording why a context stopped
-title: Don't use WithTimeoutCause alone
+title: WithTimeoutCause sets a cause only when the timer fires
 ---
 
 <Code gutter="9rem">
@@ -1029,7 +1029,7 @@ _, err := http.DefaultClient.Do(req)
 errors.Is(err, context.DeadlineExceeded)
 ```
 
-<Mark :line="2" v-click>no %w, so the sentinel is lost</Mark>
+<Mark :line="2" v-click>errors.New drops the sentinel</Mark>
 <Mark :line="8" v-click>false</Mark>
 
 </Code>
@@ -1038,7 +1038,7 @@ errors.Is(err, context.DeadlineExceeded)
 <v-clicks>
 
 - Since Go 1.23, `net/http` returns `context.Cause(ctx)`. A plain cause replaces the sentinel
-- Retry and alert code that checks for `DeadlineExceeded` no longer matches
+- Retry and alert code that checks for `DeadlineExceeded` then fails
 
 </v-clicks>
 </div>
@@ -1157,7 +1157,7 @@ title: Context values
 layout: two-cols
 class: even
 kicker: Context values
-title: Put a value in the context only if the code can run without it
+title: Put only optional values in the context
 ---
 
 <div class="col-h">Fine in a context</div>
@@ -1230,7 +1230,7 @@ type ctxKey struct{}
 
 </div>
 
-<Mark :block="2" :line="5" v-click>no other package can build one</Mark>
+<Mark :block="2" :line="5" v-click>only this package can build one</Mark>
 
 </Code>
 
@@ -1280,8 +1280,8 @@ func UserFromContext(ctx context.Context) (User, bool) {
 <div class="points" style="--n: 2">
 <v-clicks>
 
-- Callers get a typed value and a bool, and never touch the key
-- A missing value gives `false`, not a panic
+- Callers get a typed value and a bool. The key stays private
+- A missing value returns `false`
 
 </v-clicks>
 </div>
@@ -1313,7 +1313,7 @@ func (s *BookStore) Create(ctx context.Context, b Book) (int64, error) {
 }
 ```
 
-<Mark :line="4" v-click>false if a caller forgets WithTx, with no error</Mark>
+<Mark :line="4" v-click>false if a caller forgets WithTx</Mark>
 
 <div v-click>
 
@@ -1333,7 +1333,7 @@ err := store.Tx(ctx, func(tx book.Store) error {
 <v-clicks>
 
 - The writes then go to the pool, outside the transaction
-- The compiler can't find this bug, because the signature doesn't show the dependency
+- The signature hides the dependency, so the compiler can't find this bug
 
 </v-clicks>
 </div>
