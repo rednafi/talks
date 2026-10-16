@@ -581,8 +581,8 @@ title: Most context bugs I see fall into these groups
 <div class="fail" v-click>
   <div class="fail-num">4</div>
   <div class="fail-title">A value that goes missing</div>
-  <div class="fail-sym">The user ID is gone, and nothing failed to compile.</div>
-  <div class="fail-why">A key collided, or a required value hid in the context.</div>
+  <div class="fail-sym">The handler asks for the user ID and gets nothing.</div>
+  <div class="fail-why">Another package stored a value under the same key.</div>
 </div>
 </div>
 
@@ -591,7 +591,7 @@ title: Most context bugs I see fall into these groups
 <!--
 These are the problems. Everything after this slide is advice that prevents one of them.
 
-[click] In the first group, work doesn't stop. A layer broke the chain, or never checks. [click] In the second, work stops too early, because something that has to outlive the request got the request's context. [click] The third group is the log line from the start: a stop with no reason. [click] The fourth is about values. A value can go missing, and the compiler can't tell you.
+[click] In the first group, work doesn't stop. A layer broke the chain, or never checks. [click] In the second, work stops too early, because something that has to outlive the request got the request's context. [click] The third group is the log line from the start: a stop with no reason. [click] The fourth is about values. Two packages use the same key, one overwrites the other, and the lookup fails at run time. The compiler can't catch it.
 
 [click] Each piece of advice works on its own, so you can take the ones that fit your code.
 -->
