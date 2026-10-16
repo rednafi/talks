@@ -547,12 +547,10 @@ title: The rules have been written down since 2014
   </div>
 </div>
 
-<p v-click class="big-q">The docs explain how to pass a context. They say little about how it breaks in production.</p>
-
 <!--
 The rules are not new. [click] The Go blog had them in 2014. [click] context joined the standard library in Go 1.7. [click] The Go blog added a post on structs in 2021. [click] Google published its Go style guide in November 2022. [click] Causes and WithoutCancel came in 2023.
 
-[click] I still find the same bugs in code review every month. The docs explain how to pass a context. They say much less about how it breaks in production.
+I still find the same bugs in code review every month. The docs explain how to pass a context. They say much less about how it breaks in production.
 -->
 
 ---
