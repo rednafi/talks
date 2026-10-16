@@ -954,11 +954,12 @@ kicker: Recording why a context stopped
 title: WithTimeoutCause sets a cause only when the timer fires
 ---
 
-<Code gutter="9rem">
+<Code gutter="13rem">
 
 <div v-click>
 
 ```go
+// Don't: expect this cause on every stop.
 ctx, cancel := context.WithTimeoutCause(ctx, 5*time.Second,
     fmt.Errorf("processOrder %s: 5s timeout", id))
 defer cancel()
@@ -966,21 +967,10 @@ defer cancel()
 
 </div>
 
-<Mark :line="3" v-click>takes no cause</Mark>
+<Mark :line="3" v-click>used only on timeout</Mark>
+<Mark :line="4" v-click>cancel() sets no cause</Mark>
 
 </Code>
-
-<div v-click>
-
-<Code file="context/context.go" gutter="9rem">
-
-```go
-return c, func() { c.cancel(true, Canceled, nil) }
-```
-
-</Code>
-
-</div>
 
 <div v-click>
 
@@ -993,9 +983,9 @@ return c, func() { c.cancel(true, Canceled, nil) }
 </div>
 
 <!--
-[click] Most cancels come from timeouts, so Go 1.21 added WithTimeoutCause and WithDeadlineCause. You give the cause up front, and the context uses it when the timer fires.
+[click] Most cancels come from timeouts, so Go 1.21 added WithTimeoutCause and WithDeadlineCause. You give the cause up front.
 
-[click] The cancel function you get back is a plain CancelFunc. [click] This is the line in the standard library. It cancels with Canceled and a nil cause.
+[click] The context uses that cause only when the timer fires. [click] The cancel function you get back is a plain CancelFunc. In the standard library it cancels with Canceled and a nil cause.
 
 [click] So the cause shows up only on the timeout path. The normal return, which happens on most requests, and every explicit cancel give you a bare context canceled.
 
