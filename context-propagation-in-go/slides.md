@@ -741,13 +741,13 @@ This is a retry loop that passes ctx correctly to the call, and still ignores it
 ---
 layout: default
 kicker: Passing a context down
-title: Detach work that has to outlive the request, then bound it
+title: Give background work its own context and timeout
 ---
 
 <Code gutter="17rem">
 
 ```go
-// Don't: use the request context here.
+// Don't: use the request context for background work.
 go h.audit.Write(r.Context(), orderID)
 ```
 
@@ -769,7 +769,7 @@ h.pool.Submit(func() {
 </div>
 
 <Mark :block="2" :line="3" v-click>Go 1.21</Mark>
-<Mark :block="2" :line="5" v-click>a bound of your own</Mark>
+<Mark :block="2" :line="5" v-click>its own timeout</Mark>
 
 </Code>
 
