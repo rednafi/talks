@@ -51,6 +51,8 @@ title: "$ whoami"
 
 Hi, I'm Redowan, **@rednafi** on the web.
 
+<v-clicks>
+
 I oscillate between product and platform work at DoorDash/Wolt.
 
 Interested in databases, streaming, o11y, and failure modes of large-scale distsys.
@@ -59,12 +61,14 @@ Writing at **rednafi.com**.
 
 <div class="about-links">github.com/rednafi<br>linkedin.com/in/rednafi</div>
 
+</v-clicks>
+
 </div>
 <img class="about-gopher" src="/img/gopher-hiking.svg" alt="" />
 </div>
 
 <!--
-I oscillate between product and platform work, and I care most about how distributed systems fail at scale.
+[click] I oscillate between product and platform work, [click] and I care most about how distributed systems fail at scale.
 -->
 ---
 layout: quote
@@ -255,6 +259,7 @@ Package context defines the Context type, which carries deadlines, cancellation 
 <cite>context package doc</cite>
 </div>
 
+<div v-click="1">
 <Code gutter="19rem">
 
 ```go
@@ -266,15 +271,16 @@ type Context interface {
 }
 ```
 
-<Mark :line="2" v-click>when to give up</Mark>
-<Mark :line="3" v-click>closed when the work should stop</Mark>
-<Mark :line="4" v-click>Canceled or DeadlineExceeded</Mark>
-<Mark :line="5" v-click>data about the request</Mark>
+<Mark :line="2" v-click="2">when to give up</Mark>
+<Mark :line="3" v-click="3">closed when the work should stop</Mark>
+<Mark :line="4" v-click="4">Canceled or DeadlineExceeded</Mark>
+<Mark :line="5" v-click="5">data about the request</Mark>
 
 </Code>
+</div>
 
 <div class="points" style="--n: 2">
-<v-clicks>
+<v-clicks at="6">
 
 - There is no `Cancel` method, so the code that gets the signal can't send it
 - A context never changes. To add a deadline or a value, you derive a child
@@ -285,7 +291,7 @@ type Context interface {
 <!--
 The package doc says what a context is for. Note "between processes". I come back to that in two slides.
 
-This is the whole interface. [click] Deadline tells the work when to give up. [click] Done is a channel that closes when the work should stop. Any number of goroutines can wait on it. [click] Err tells you why it stopped, and it has only two answers: Canceled or DeadlineExceeded. Part 3 is about that limit. [click] Value carries data about the request, such as a trace ID.
+[click] This is the whole interface. [click] Deadline tells the work when to give up. [click] Done is a channel that closes when the work should stop. Any number of goroutines can wait on it. [click] Err tells you why it stopped, and it has only two answers: Canceled or DeadlineExceeded. Part 3 is about that limit. [click] Value carries data about the request, such as a trace ID.
 
 [click] The interface has no Cancel method. The function that gets a cancel signal is usually not the one that sends it, so a child can't cancel its parent. [click] A context is also read-only. You change it by wrapping it.
 -->
