@@ -562,38 +562,32 @@ title: Most context bugs I see fall into these groups
 <div class="three" style="grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 1.8rem">
 <div class="fail" v-click>
   <div class="fail-num">1</div>
-  <div class="fail-title">Work that doesn't stop</div>
-  <div class="fail-sym">The client left, and the query keeps going.</div>
-  <div class="fail-why">A layer drops the context or ignores it.</div>
+  <div class="fail-title">Work that does not stop</div>
+  <div class="fail-why">The client left, but the query continues.</div>
 </div>
 <div class="fail" v-click>
   <div class="fail-num">2</div>
   <div class="fail-title">Work that stops too early</div>
-  <div class="fail-sym">The audit write fails after the response.</div>
-  <div class="fail-why">Background work got the request's context.</div>
+  <div class="fail-why">The audit write fails after the response.</div>
 </div>
 <div class="fail" v-click>
   <div class="fail-num">3</div>
-  <div class="fail-title">A stop that doesn't say why</div>
-  <div class="fail-sym">context canceled, with no reason.</div>
-  <div class="fail-why">The code that canceled didn't record one.</div>
+  <div class="fail-title">A stop with no reason</div>
+  <div class="fail-why">The log says only context canceled.</div>
 </div>
 <div class="fail" v-click>
   <div class="fail-num">4</div>
   <div class="fail-title">A value that goes missing</div>
-  <div class="fail-sym">The handler asks for the user ID and gets nothing.</div>
-  <div class="fail-why">Another package stored a value under the same key.</div>
+  <div class="fail-why">The user ID lookup returns nil.</div>
 </div>
 </div>
-
-<p v-click class="muted center-note">Each piece of advice that follows prevents one of these.</p>
 
 <!--
 These are the problems. Everything after this slide is advice that prevents one of them.
 
 [click] In the first group, work doesn't stop. A layer broke the chain, or never checks. [click] In the second, work stops too early, because something that has to outlive the request got the request's context. [click] The third group is the log line from the start: a stop with no reason. [click] The fourth is about values. Two packages use the same key, one overwrites the other, and the lookup fails at run time. The compiler can't catch it.
 
-[click] Each piece of advice works on its own, so you can take the ones that fit your code.
+Each piece of advice works on its own, so you can take the ones that fit your code.
 -->
 
 ---
