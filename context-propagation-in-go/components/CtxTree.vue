@@ -5,7 +5,8 @@ import { useSlideContext } from '@slidev/client'
 // Clicks: 1 WithCancel, 2 WithTimeout branch, 3 WithValue branch,
 // 4 WithoutCancel branch, 5 the timeout fires, 6 the client hangs up.
 const { $clicks } = useSlideContext()
-const c = computed(() => $clicks.value)
+// Click 1 shows the root, so the tree runs one click behind the slide.
+const c = computed(() => $clicks.value - 1)
 
 type N = { id: string; x: number; y: number; label: string; ctx?: boolean; at: number; stop?: number }
 const W = 140, H = 36
