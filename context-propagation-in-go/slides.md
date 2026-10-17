@@ -1018,8 +1018,8 @@ func processOrder(ctx context.Context, id string) error {
 <div class="points" style="--n: 2">
 <v-clicks>
 
-- `ctx.Err()` is `DeadlineExceeded` when the timer fires
-- `ctx.Deadline()` still works, so gRPC can send it on
+- On timeout, `ctx.Err()` still returns `DeadlineExceeded`
+- The next service still gets the deadline
 
 </v-clicks>
 </div>
@@ -1033,7 +1033,7 @@ func processOrder(ctx context.Context, id string) error {
 
 [click] Defers run last in, first out. cancelCause runs first and sets the reason. cancelTimeout then finds the context already canceled and does nothing. If you swap the two defer lines, you lose the cause.
 
-[click] [click] The inner context keeps the deadline. A version with time.AfterFunc and one WithCancelCause also records causes, but its context has no deadline, so gRPC has nothing to send to the next service.
+[click] The stack still acts like a plain timeout. On timeout, Err returns DeadlineExceeded. [click] And Deadline returns the deadline, so the gRPC or HTTP client sends it to the next service. A version with time.AfterFunc and one WithCancelCause also records causes, but its context has no deadline, so the next service gets nothing.
 
 It is a lot to get right at every call site. Part 5 shows how to put it in one helper.
 -->
