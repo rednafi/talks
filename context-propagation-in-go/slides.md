@@ -1076,6 +1076,7 @@ errors.Is(err, context.DeadlineExceeded)
 
 </div>
 
+<Mark :line="3" v-click>errors.New drops DeadlineExceeded</Mark>
 <Mark :line="6" v-click>since Go 1.23, err is the cause</Mark>
 <Mark :line="7" v-click>false</Mark>
 
@@ -1095,7 +1096,7 @@ ctx, cancel := context.WithTimeoutCause(ctx, 20*time.Millisecond,
 </Code>
 
 <!--
-[click] A cause is an error like any other. This cause is a plain errors.New, so it doesn't wrap DeadlineExceeded.
+[click] A cause is an error like any other. [click] This cause is a plain errors.New, so it doesn't wrap DeadlineExceeded.
 
 [click] Since Go 1.23, the HTTP client returns context.Cause instead of the sentinel. So err is our cause. [click] And this check is false. A retry policy or an alert that checks DeadlineExceeded stops working on the day you add causes.
 
