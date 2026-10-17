@@ -1147,37 +1147,6 @@ ctx.Err and context.Cause answer different questions, so I log both as separate 
 -->
 
 ---
-layout: two-cols
-class: wide-left
-kicker: Recording why a context stopped
-title: Give every cancel in your code a cause
----
-
-<p v-click class="take" style="margin-top:0">Then a <code>context canceled</code> with no cause came from outside your code.</p>
-
-<div v-click class="col-h" style="margin-top:2.2rem">These cancels still have no cause</div>
-
-<v-clicks>
-
-- The `net/http` server, when the client hangs up
-- Client libraries older than Go 1.20
-- Other services, because gRPC sends only the deadline
-
-</v-clicks>
-
-::right::
-
-<img v-click="1" src="/img/gopher-soldering.svg" class="gopher" />
-
-<!--
-[click] Use the cause functions for every cancel you own, including the normal return. Then a cancel with no cause also tells you something: it came from outside your code, and on-call can start with the caller.
-
-[click] Some cancels still have no cause, and you can't change them. [click] The HTTP server in the current Go source still uses a plain WithCancel for the request context, so a client hang-up is a bare context canceled. [click] Most libraries are older than Go 1.20. [click] And a cause never crosses to the next service. gRPC sends the deadline, not the reason, so each service has to set its own causes.
-
-NotifyContext started to set "interrupt signal received" in Go 1.26.
--->
-
----
 layout: section
 index: "04"
 kicker: Part 4
@@ -1498,6 +1467,33 @@ title: The checklist I use in code review
 The checklist follows the order of the talk.
 
 [click] [click] [click] These keep work from running too long or stopping too early. [click] [click] [click] These make context canceled say why. [click] This keeps values from turning into hidden parameters. [click] And linters keep the rest true when nobody is looking.
+-->
+
+---
+layout: two-cols
+class: wide-left
+kicker: Wrap-up
+title: Some cancels still come without a cause
+---
+
+<v-clicks>
+
+- The `net/http` server, when the client hangs up
+- Client libraries older than Go 1.20
+- Other services, because gRPC sends only the deadline
+
+</v-clicks>
+
+::right::
+
+<img v-click="1" src="/img/gopher-soldering.svg" class="gopher" />
+
+<!--
+One limit to know about. Causes help only where somebody sets them.
+
+[click] The HTTP server in the current Go source still uses a plain WithCancel for the request context, so a client hang-up is a bare context canceled. [click] Most libraries are older than Go 1.20. [click] And a cause never crosses to the next service. gRPC sends the deadline, not the reason, so each service has to set its own causes.
+
+If all of your own cancels have a cause, a bare context canceled came from one of these. On-call can start there. NotifyContext started to set "interrupt signal received" in Go 1.26.
 -->
 
 ---
