@@ -1357,7 +1357,7 @@ title: Enforcing the rules
 ---
 layout: default
 kicker: Enforcing the rules
-title: Let linters catch what code review misses
+title: Linters can check most of these rules
 ---
 
 <div class="rules">
