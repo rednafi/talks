@@ -1153,13 +1153,15 @@ kicker: Recording why a context stopped
 title: Give every cancel in your code a cause
 ---
 
+<p v-click class="take" style="margin-top:0">Then a <code>context canceled</code> with no cause came from outside your code.</p>
+
+<div v-click class="col-h" style="margin-top:2.2rem">These cancels still have no cause</div>
+
 <v-clicks>
 
-- The `net/http` server cancels `r.Context()` with no cause when the client hangs up
-- Many client libraries are older than Go 1.20
-- `os/signal.NotifyContext` got a cause only in Go 1.26
-- The cause stays in the process. gRPC sends only the deadline
-- If every cancel in your code has a cause, then a bare `context canceled` came from outside your code
+- The `net/http` server, when the client hangs up
+- Client libraries older than Go 1.20
+- Other services, because gRPC sends only the deadline
 
 </v-clicks>
 
@@ -1168,11 +1170,11 @@ title: Give every cancel in your code a cause
 <img v-click="1" src="/img/gopher-soldering.svg" class="gopher" />
 
 <!--
-[click] Causes have limits. [click] The HTTP server in the current Go source still uses a plain WithCancel for the request context, so a client hang-up is still a bare context canceled.
+[click] Use the cause functions for every cancel you own, including the normal return. Then a cancel with no cause also tells you something: it came from outside your code, and on-call can start with the caller.
 
-[click] Most libraries are older than Go 1.20. [click] NotifyContext started to set "interrupt signal received" in Go 1.26. [click] And a cause never crosses to the next service. gRPC sends the deadline, not the reason, so each service has to set its own causes.
+[click] Some cancels still have no cause, and you can't change them. [click] The HTTP server in the current Go source still uses a plain WithCancel for the request context, so a client hang-up is a bare context canceled. [click] Most libraries are older than Go 1.20. [click] And a cause never crosses to the next service. gRPC sends the deadline, not the reason, so each service has to set its own causes.
 
-[click] So causes pay off when all of your own code sets them. Then a cancel with no cause also tells you something: it came from outside your code, and on-call can start with the caller.
+NotifyContext started to set "interrupt signal received" in Go 1.26.
 -->
 
 ---
