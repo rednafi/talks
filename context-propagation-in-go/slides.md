@@ -1446,14 +1446,14 @@ title: The checklist I use in code review
 
 <v-clicks>
 
-1. Pass the caller's `ctx` to each call, and don't store it in a struct
+1. Pass `ctx` to each call, and don't store it in a struct
 2. Check `ctx` in every loop and every blocking wait
-3. Give background work `WithoutCancel` and its own timeout
+3. Give background work `WithoutCancel` and a timeout
 4. Give every cancel a cause, including the normal return
-5. Make every cause wrap `context.Canceled` or `context.DeadlineExceeded`
-6. Log `ctx.Err()` and `context.Cause(ctx)` as separate fields
-7. Keep only optional values in a context, behind a setter and a getter
-8. Run `go vet` and golangci-lint in CI, and block the plain constructors
+5. Stack `WithCancelCause` on a timeout to cover every path
+6. Wrap `Canceled` or `DeadlineExceeded` in every cause
+7. Log `ctx.Err()` and `context.Cause(ctx)` separately
+8. Put only optional data in a context, and hide the key
 
 </v-clicks>
 
@@ -1464,7 +1464,7 @@ title: The checklist I use in code review
 <!--
 The checklist follows the order of the talk.
 
-[click] [click] [click] These keep work from running too long or stopping too early. [click] [click] [click] These make context canceled say why. [click] This keeps values from turning into hidden parameters. [click] And the tools check most of the list on every pull request.
+[click] [click] [click] These keep work from running too long or stopping too early. [click] [click] [click] [click] These make context canceled say why. [click] This keeps values from turning into hidden parameters. The linters and xctx check most of the list on every pull request.
 -->
 
 ---
