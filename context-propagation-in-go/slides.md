@@ -367,6 +367,7 @@ title: Each layer passes ctx to the next
 <div v-click>
 
 ```go
+// Do: pass ctx down through every layer.
 func (h *Handler) GetOrder(w http.ResponseWriter, r *http.Request) {
     ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
     defer cancel()
@@ -377,7 +378,7 @@ func (h *Handler) GetOrder(w http.ResponseWriter, r *http.Request) {
 
 </div>
 
-<Mark :line="2" v-click>the handler sets the budget</Mark>
+<Mark :line="3" v-click>the handler sets the budget</Mark>
 
 <div v-click>
 
@@ -496,6 +497,7 @@ title: The standard library stops its own work when the context ends
 <div v-click>
 
 ```go
+// Do: pass ctx to standard library calls.
 ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 defer cancel()
 
@@ -509,9 +511,9 @@ out, err := exec.CommandContext(ctx, "pg_dump", dbName).Output()
 
 </div>
 
-<Mark :line="5" v-click>closes the connection</Mark>
-<Mark :line="7" v-click>the driver gets ctx and stops the query</Mark>
-<Mark :line="9" v-click>kills the process</Mark>
+<Mark :line="6" v-click>closes the connection</Mark>
+<Mark :line="8" v-click>the driver gets ctx and stops the query</Mark>
+<Mark :line="10" v-click>kills the process</Mark>
 
 </Code>
 
@@ -902,6 +904,7 @@ title: Cancel with a cause that says why
 <div v-click>
 
 ```go
+// Do: give each cancel a reason.
 func processOrder(ctx context.Context, id string) error {
     ctx, cancel := context.WithCancelCause(ctx)
     defer cancel(errors.New("processOrder: completed"))
@@ -916,9 +919,9 @@ func processOrder(ctx context.Context, id string) error {
 
 </div>
 
-<Mark :line="2" v-click="1">cancel takes a cause (Go 1.20)</Mark>
-<Mark :line="3" v-click>default reason</Mark>
-<Mark :line="6" v-click>specific reason</Mark>
+<Mark :line="3" v-click="1">cancel takes a cause (Go 1.20)</Mark>
+<Mark :line="4" v-click>default reason</Mark>
+<Mark :line="7" v-click>specific reason</Mark>
 
 </Code>
 
@@ -1054,66 +1057,49 @@ It is a lot to get right at every call site. Part 5 shows how to put it in one h
 ---
 layout: default
 kicker: Recording why a context stopped
-title: Wrap the sentinel error in each cause, so errors.Is still matches
+title: Wrap DeadlineExceeded in the cause, so errors.Is still matches
 ---
 
-<Code gutter="15rem">
+<Code gutter="17rem">
 
 <div v-click>
 
 ```go
-// Don't: use a cause without the sentinel.
+// Don't: use a cause that drops DeadlineExceeded.
 ctx, cancel := context.WithTimeoutCause(ctx, 20*time.Millisecond,
     errors.New("inventory: budget spent"))
 defer cancel()
 
-req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-_, err := http.DefaultClient.Do(req)
-
+_, err := http.DefaultClient.Do(req.WithContext(ctx))
 errors.Is(err, context.DeadlineExceeded)
 ```
 
 </div>
 
-<Mark :line="3" v-click>errors.New drops the sentinel</Mark>
-<Mark :line="9" v-click>false</Mark>
+<Mark :line="6" v-click>since Go 1.23, err is the cause</Mark>
+<Mark :line="7" v-click>false</Mark>
 
-</Code>
-
-<div class="points" style="--n: 2">
-<v-clicks>
-
-- Since Go 1.23, `net/http` returns `context.Cause(ctx)`. A plain cause replaces the sentinel
-- Retry and alert code that checks for `DeadlineExceeded` then fails
-
-</v-clicks>
-</div>
-
-<div v-click style="margin-top: 1.5rem">
-
-<Code gutter="15rem">
+<div v-click>
 
 ```go
-// Do: wrap the sentinel with %w.
-fmt.Errorf("inventory: budget spent: %w", context.DeadlineExceeded)
+
+// Do: wrap DeadlineExceeded with %w.
+ctx, cancel := context.WithTimeoutCause(ctx, 20*time.Millisecond,
+    fmt.Errorf("inventory: budget spent: %w", context.DeadlineExceeded))
 ```
-
-<Mark :line="2" v-click>wrapped with %w, so true</Mark>
-
-</Code>
 
 </div>
 
+<Mark :block="2" :line="4" v-click>errors.Is now returns true</Mark>
+
+</Code>
+
 <!--
-[click] The causes on the last few slides have a problem. A cause is an error like any other.
+[click] A cause is an error like any other. This cause is a plain errors.New, so it doesn't wrap DeadlineExceeded.
 
-[click] This cause is a plain errors.New. It doesn't wrap DeadlineExceeded.
+[click] Since Go 1.23, the HTTP client returns context.Cause instead of the sentinel. So err is our cause. [click] And this check is false. A retry policy or an alert that checks DeadlineExceeded stops working on the day you add causes.
 
-[click] So this check is false. net/http made this a real problem: since Go 1.23 the HTTP client returns context.Cause instead of the sentinel.
-
-[click] A plain cause takes the place of the sentinel. [click] A retry policy or an alert that checks DeadlineExceeded stops working on the day you add causes.
-
-[click] The fix is to wrap the sentinel with %w. [click] Then errors.Is matches the sentinel again, and the message still has the reason. Go 1.26 does this for signal.NotifyContext: its cause reports itself as context.Canceled.
+[click] The fix is to wrap DeadlineExceeded with %w. [click] Then errors.Is matches again, and the message still has the reason. Go 1.26 does this for signal.NotifyContext: its cause reports itself as context.Canceled.
 -->
 
 ---
@@ -1127,6 +1113,7 @@ title: Log the error and the cause as separate fields
 <div v-click>
 
 ```go
+// Do: log the error and the cause.
 if err := ctx.Err(); err != nil {
     logger.LogAttrs(ctx, slog.LevelError, "request failed",
         slog.Any("err", err),
@@ -1317,6 +1304,7 @@ title: Hide the key behind a setter and a getter
 <div v-click>
 
 ```go
+// Do: keep the key behind two functions.
 package auth
 
 func WithUser(ctx context.Context, u User) context.Context {
@@ -1331,8 +1319,8 @@ func UserFromContext(ctx context.Context) (User, bool) {
 
 </div>
 
-<Mark :line="3" v-click>the only way to set it</Mark>
-<Mark :line="8" v-click>the only type assertion</Mark>
+<Mark :line="4" v-click>the only way to set it</Mark>
+<Mark :line="9" v-click>the only type assertion</Mark>
 
 </Code>
 
@@ -1452,6 +1440,7 @@ title: Wrap the constructors so every cancel needs a cause
 <div v-click>
 
 ```go
+// Do: make the cancel func take a cause.
 package xctx
 
 func WithCancel(parent context.Context) (context.Context, context.CancelCauseFunc) {
@@ -1464,13 +1453,14 @@ func WithCancel(parent context.Context) (context.Context, context.CancelCauseFun
 
 </div>
 
-<Mark :line="5" v-click>the cancel func needs a reason</Mark>
-<Mark :line="6" v-click>errors.Is still matches</Mark>
+<Mark :line="6" v-click>the cancel func needs a reason</Mark>
+<Mark :line="7" v-click>errors.Is still matches</Mark>
 
 <div v-click>
 
 ```yaml
 
+# Do: block the plain constructors.
 # .golangci.yml
 linters:
   settings:

@@ -12,8 +12,8 @@ export default defineShikiSetup(() => ({
       name: 'dont-do-comments',
       span(node, _line, _col, _lineEl, token) {
         const t = token.content.trim()
-        if (/^\/\/ Don't\b/.test(t)) this.addClassToHast(node, 'cm-dont')
-        else if (/^\/\/ Do\b/.test(t)) this.addClassToHast(node, 'cm-do')
+        if (/^(\/\/|#) Don't\b/.test(t)) this.addClassToHast(node, 'cm-dont')
+        else if (/^(\/\/|#) Do\b/.test(t)) this.addClassToHast(node, 'cm-do')
       },
     },
   ],
