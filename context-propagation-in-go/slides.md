@@ -71,16 +71,6 @@ Writing at **rednafi.com**.
 [click] Hi, I'm Redowan. [click] I oscillate between product and platform work, [click] and I care most about how distributed systems fail at scale.
 -->
 ---
-layout: quote
-quote: "A distributed system is one in which the failure of a computer you didn't even know existed can render your own computer unusable."
-author: Leslie Lamport, 1987
-image: /img/gopher-network.svg
----
-
-<!--
-Lamport wrote this in an email at DEC in 1987. A timeout works the same way as a failure here. A deadline set three services up the call chain can stop work in my service, and the log line is all I get.
--->
----
 layout: two-cols
 class: wide-left
 kicker: The problem
@@ -378,7 +368,7 @@ func (h *Handler) GetOrder(w http.ResponseWriter, r *http.Request) {
 
 </div>
 
-<Mark :line="3" v-click>the handler sets the budget</Mark>
+<Mark :line="3" v-click>the handler sets the time limit</Mark>
 
 <div v-click>
 
@@ -489,7 +479,7 @@ This function resizes a list of images and takes ctx, but never looks at it. [cl
 ---
 layout: default
 kicker: Context basics
-title: The standard library stops its own work when the context ends
+title: The standard library stops when the context ends
 ---
 
 <Code gutter="18rem">
@@ -618,7 +608,7 @@ title: Passing a context down
 ---
 layout: default
 kicker: Passing a context down
-title: Pass ctx as the first argument to each function
+title: Use the caller's context
 ---
 
 <Code gutter="15rem">
@@ -827,7 +817,7 @@ h.pool.Submit(func() {
 ---
 layout: default
 kicker: Passing a context down
-title: Set the deadline at the edge, because a child can't extend it
+title: Set the deadline in the handler, because a child can't extend it
 ---
 
 <Code gutter="16rem">
@@ -854,7 +844,7 @@ defer cancel()
 
 </div>
 
-<Mark :block="2" :line="3" v-click>the edge sets the budget</Mark>
+<Mark :block="2" :line="3" v-click>the handler sets the time limit</Mark>
 
 </Code>
 
@@ -880,7 +870,7 @@ defer cancel()
 <!--
 [click] Deeper down, some function asks for ten seconds. [click] It still ends at the two seconds the handler set. A child's deadline is the earlier of its own and its parent's, so a deadline can only get shorter as it moves down the tree.
 
-[click] The handler is the edge. [click] It decides how long the whole request may take, here two seconds.
+[click] The handler is where the request starts. [click] It decides how long the whole request may take, here two seconds.
 
 [click] The dashed part is the time the child asked for and never gets.
 
@@ -1067,7 +1057,7 @@ title: Wrap DeadlineExceeded in the cause, so errors.Is still matches
 ```go
 // Don't: use a cause that drops DeadlineExceeded.
 ctx, cancel := context.WithTimeoutCause(ctx, 20*time.Millisecond,
-    errors.New("inventory: budget spent"))
+    errors.New("inventory: 20ms timeout"))
 defer cancel()
 
 _, err := http.DefaultClient.Do(req.WithContext(ctx))
@@ -1086,7 +1076,7 @@ errors.Is(err, context.DeadlineExceeded)
 
 // Do: wrap DeadlineExceeded with %w.
 ctx, cancel := context.WithTimeoutCause(ctx, 20*time.Millisecond,
-    fmt.Errorf("inventory: budget spent: %w", context.DeadlineExceeded))
+    fmt.Errorf("inventory: 20ms timeout: %w", context.DeadlineExceeded))
 ```
 
 </div>
@@ -1196,7 +1186,7 @@ title: Context values
 layout: two-cols
 class: even
 kicker: Context values
-title: Put only optional values in the context
+title: Put a value in the context only if the code works without it
 ---
 
 <div v-click class="col-h">Fine in a context</div>
@@ -1366,40 +1356,34 @@ func (s *BookStore) Create(ctx context.Context, b Book) (int64, error) {
 </div>
 
 <Mark :line="4" v-click>false if a caller forgets WithTx</Mark>
+<Mark :line="3" v-click>then writes go to the pool</Mark>
 
 <div v-click>
 
 ```go
 
 // Do: pass the transaction as an argument.
-err := store.Tx(ctx, func(tx book.Store) error {
-    // use tx for every write
-})
+func (s *BookStore) Create(ctx context.Context, tx DBTX, b Book) (int64, error) {
+    // ...
+}
 ```
 
 </div>
 
+<Mark :block="2" :line="3" v-click>callers have to pass it</Mark>
+
 </Code>
-
-<div class="points" style="--n: 2">
-<v-clicks>
-
-- The writes then go to the pool, outside the transaction
-- The signature hides the dependency, so the compiler can't find this bug
-
-</v-clicks>
-</div>
 
 <!--
 [click] A typed getter stops key collisions. It can't stop a required value from hiding in a context.
 
 A reader suggested this pattern on my repository post: put the transaction in the context and let the store pick it up.
 
-[click] If someone forgets to call WithTx, or calls it on the wrong context, the store falls back to the connection pool. Nothing returns an error, and the writes are no longer atomic.
+[click] If someone forgets to call WithTx, or calls it on the wrong context, this check is false. [click] The store falls back to the connection pool. Nothing returns an error, and the writes are no longer atomic.
 
-[click] A callback that receives the transactional store makes the dependency visible in the signature.
+[click] Pass the transaction as an argument. [click] Now the dependency is in the signature, and the compiler checks that every caller passes it.
 
-[click] [click] Code review can catch this and most of the earlier advice. Review also misses some of it, so the last part is about tools.
+Code review can catch this and most of the earlier advice. Review also misses some of it, so the last part is about tools.
 -->
 
 ---
@@ -1496,8 +1480,8 @@ title: The checklist I use in code review
 <v-clicks>
 
 1. Pass `ctx` first to each function, and don't store it in a struct
-2. Wait on `ctx.Done()` in every loop and every blocking wait
-3. Set the deadline at the edge, and give background work its own timeout
+2. Check `ctx` in every loop and every blocking wait
+3. Set the deadline in the handler, and give background work its own timeout
 4. Give every cancel a cause, including the normal return
 5. Make every cause wrap `context.Canceled` or `context.DeadlineExceeded`
 6. Log `ctx.Err()` and `context.Cause(ctx)` as separate fields
