@@ -1390,7 +1390,7 @@ title: Wrap the constructors so every cancel needs a cause
 package xctx
 
 func WithCancel(parent context.Context) (context.Context, context.CancelCauseFunc) {
-    ctx, cancel := context.WithCancelCause(parent)
+    ctx, cancel := context.WithCancelCause(parent) //nolint:forbidigo
     return ctx, func(cause error) {
         if cause == nil {
             cause = errors.New("no cause given")
@@ -1430,7 +1430,7 @@ linters:
 <!--
 [click] Stacking contexts and wrapping context.Canceled at every call site is easy to get wrong. So put it in a small package. [click] Its cancel function takes a cause, so callers have to give one. [click] A nil cause still gets a message. [click] It wraps context.Canceled, so errors.Is keeps working. The package's WithTimeout does the stack from Part 3.
 
-[click] Then a forbidigo rule fails the build when someone calls the standard constructors, including the Cause versions. The context.WithTimeout calls from Part 2 become xctx.WithTimeout. The package still returns a plain context.Context, so every library works as before.
+[click] Then a forbidigo rule fails the build when someone calls the standard constructors, including the Cause versions. xctx itself is the one place with a nolint comment. The context.WithTimeout calls from Part 2 become xctx.WithTimeout. The package still returns a plain context.Context, so every library works as before.
 
 [click] Alex Hornbake did this at DoorDash in early 2026. After the rollout, every cancel in that repo has a cause.
 -->
