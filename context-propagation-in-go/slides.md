@@ -998,11 +998,17 @@ kicker: Recording why a context stopped
 title: Put a cancel cause on top of the timeout
 ---
 
+<div v-click class="pull pull-top">
+If users need to set the cause on both the timer and cancel() paths, they can stack contexts.
+<cite>Sameer Ajmani, golang/go#56661, 2022</cite>
+</div>
+
 <Code gutter="15rem">
 
 <div v-click>
 
 ```go
+// Do: stack a cancel cause on the timeout.
 func processOrder(ctx context.Context, id string) error {
     ctx, cancelCause := context.WithCancelCause(ctx)
     ctx, cancelTimeout := context.WithTimeoutCause(ctx, 5*time.Second,
@@ -1016,9 +1022,9 @@ func processOrder(ctx context.Context, id string) error {
 
 </div>
 
-<Mark :line="2" v-click>takes a cause on every path</Mark>
-<Mark :line="3" v-click>has the timer and the deadline</Mark>
-<Mark :line="6" v-click>deferred last, so it runs first</Mark>
+<Mark :line="3" v-click>takes a cause on every path</Mark>
+<Mark :line="4" v-click>has the timer and the deadline</Mark>
+<Mark :line="7" v-click>deferred last, so it runs first</Mark>
 
 </Code>
 
@@ -1031,13 +1037,10 @@ func processOrder(ctx context.Context, id string) error {
 </v-clicks>
 </div>
 
-<div v-click class="pull">
-If users need to set the cause on both the timer and cancel() paths, they can stack contexts.
-<cite>Sameer Ajmani, golang/go#56661, 2022</cite>
-</div>
-
 <!--
-[click] To get a cause on every path, stack two contexts.
+[click] The proposal that added WithTimeoutCause suggests a fix: stack two contexts.
+
+[click] This way, every path gets a cause.
 
 [click] The outer context has a cancel function that takes a cause. [click] The inner context owns the timer, so it is a real deadline context.
 
@@ -1045,7 +1048,7 @@ If users need to set the cause on both the timer and cancel() paths, they can st
 
 [click] [click] The inner context keeps the deadline. A version with time.AfterFunc and one WithCancelCause also records causes, but its context has no deadline, so gRPC has nothing to send to the next service.
 
-[click] The proposal that added WithTimeoutCause suggests this stack. It is a lot to get right at every call site. Part 5 shows how to put it in one helper.
+It is a lot to get right at every call site. Part 5 shows how to put it in one helper.
 -->
 
 ---
