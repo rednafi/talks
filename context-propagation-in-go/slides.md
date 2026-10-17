@@ -817,7 +817,7 @@ h.pool.Submit(func() {
 ---
 layout: default
 kicker: Passing a context down
-title: Set the deadline in the handler, because a child can't extend it
+title: A child context can't extend its parent's deadline
 ---
 
 <Code gutter="16rem">
@@ -825,26 +825,20 @@ title: Set the deadline in the handler, because a child can't extend it
 <div v-click>
 
 ```go
-// Don't: ask for more time deeper down.
-ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+parent, cancelParent := context.WithTimeout(ctx, 2*time.Second)
+defer cancelParent()
+
+child, cancelChild := context.WithTimeout(parent, 10*time.Second)
+defer cancelChild()
+
+deadline, _ := child.Deadline()
 ```
 
 </div>
 
-<Mark :line="2" v-click>still ends at the handler's 2s</Mark>
-
-<div v-click>
-
-```go
-
-// Do: set the deadline once, in the handler.
-ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
-defer cancel()
-```
-
-</div>
-
-<Mark :block="2" :line="3" v-click>the handler sets the time limit</Mark>
+<Mark :line="1" v-click>the parent gets 2s</Mark>
+<Mark :line="4" v-click>the child asks for 10s</Mark>
+<Mark :line="7" v-click>2s from now</Mark>
 
 </Code>
 
@@ -853,28 +847,28 @@ defer cancel()
 <Bars
   :total="5000"
   :click="false"
-  :marker="{ at: 2000, label: 'handler deadline' }"
+  :marker="{ at: 2000, label: 'parent deadline' }"
   after="clip"
-  after-label="The 10s the child asked for, cut at 2s"
+  after-label="The time the child asked for, cut at 2s"
   :ticks="[{ at: 0, label: '0' }, { at: 2000, label: '2s' }, { at: 5000, label: '5s' }]"
   :rows="[
-    { label: 'handler ctx', from: 0, to: 2000 },
-    { label: 'WithTimeout(10s)', from: 0, to: 5000 },
+    { label: 'parent (2s)', from: 0, to: 2000 },
+    { label: 'child (10s)', from: 0, to: 5000 },
   ]"
 />
 
 </div>
 
-<p v-click class="take">Give an inner call its own timeout only when it needs less time than the request.</p>
+<p v-click class="take">So set the deadline once, in the handler. Give a lower layer its own timeout only when it needs less time.</p>
 
 <!--
-[click] Deeper down, some function asks for ten seconds. [click] It still ends at the two seconds the handler set. A child's deadline is the earlier of its own and its parent's, so a deadline can only get shorter as it moves down the tree.
+[click] Here is a parent and a child. [click] The parent gets two seconds. [click] The child asks for ten.
 
-[click] The handler is where the request starts. [click] It decides how long the whole request may take, here two seconds.
+[click] The child's deadline is still two seconds from now. A child's deadline is the earlier of its own and its parent's, so a deadline can only get shorter as it moves down the tree.
 
 [click] The dashed part is the time the child asked for and never gets.
 
-[click] So set the real deadline once, where the request or the job starts. Give an inner call a shorter timeout when it needs one, for example a cache lookup that should give up fast. If some work can't be stopped half way, check ctx.Deadline before you start it.
+[click] In a real service, the parent is the handler and the child is some function deeper down. A lower layer can't give itself more time. So set the real deadline once, where the request or the job starts. Give an inner call a shorter timeout when it needs one, for example a cache lookup that should give up fast. If some work can't be stopped half way, check ctx.Deadline before you start it.
 -->
 ---
 layout: section
