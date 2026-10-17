@@ -844,15 +844,15 @@ deadline, _ := child.Deadline()
 <div v-click>
 
 <Bars
-  :total="5000"
+  :total="10000"
   :click="false"
   :marker="{ at: 2000, label: 'parent deadline' }"
   after="clip"
   after-label="The time the child asked for, cut at 2s"
-  :ticks="[{ at: 0, label: '0' }, { at: 2000, label: '2s' }, { at: 5000, label: '5s' }]"
+  :ticks="[{ at: 0, label: '0' }, { at: 2000, label: '2s' }, { at: 5000, label: '5s' }, { at: 10000, label: '10s' }]"
   :rows="[
     { label: 'parent (2s)', from: 0, to: 2000 },
-    { label: 'child (10s)', from: 0, to: 5000 },
+    { label: 'child (10s)', from: 0, to: 10000 },
   ]"
 />
 
@@ -882,7 +882,7 @@ kicker: Recording why a context stopped
 title: Cancel with a cause that says why
 ---
 
-<Code gutter="15rem">
+<Code gutter="9rem">
 
 <div v-click>
 
@@ -902,9 +902,9 @@ func placeOrder(ctx context.Context, id string) error {
 
 </div>
 
-<Mark :line="3" v-click="1">cancel takes a cause (Go 1.20)</Mark>
-<Mark :line="4" v-click>cause on normal return</Mark>
-<Mark :line="7" v-click>cause for this error</Mark>
+<Mark :line="3" v-click="1">Go 1.20</Mark>
+<Mark :line="4" v-click>normal return</Mark>
+<Mark :line="7" v-click>error path</Mark>
 
 </Code>
 
@@ -1392,6 +1392,9 @@ package xctx
 func WithCancel(parent context.Context) (context.Context, context.CancelCauseFunc) {
     ctx, cancel := context.WithCancelCause(parent)
     return ctx, func(cause error) {
+        if cause == nil {
+            cause = errors.New("no cause given")
+        }
         cancel(fmt.Errorf("%w: %w", cause, context.Canceled))
     }
 }
@@ -1400,14 +1403,14 @@ func WithCancel(parent context.Context) (context.Context, context.CancelCauseFun
 </div>
 
 <Mark :line="6" v-click>the cancel func needs a cause</Mark>
-<Mark :line="7" v-click>errors.Is still matches</Mark>
+<Mark :line="7" v-click>nil still gets a cause</Mark>
+<Mark :line="10" v-click>errors.Is still matches</Mark>
 
 <div v-click>
 
 ```yaml
 
-# Do: block the plain constructors.
-# .golangci.yml
+# Do: block the plain constructors in .golangci.yml.
 version: "2"
 linters:
   enable: [forbidigo]
@@ -1415,8 +1418,7 @@ linters:
     forbidigo:
       analyze-types: true
       forbid:
-        - pattern: ^context\.With(Cancel|Timeout|Deadline)$
-          msg: use xctx, which takes a cause
+        - pattern: ^context\.With(Cancel|Timeout|Deadline)(Cause)?$
 ```
 
 </div>
@@ -1426,9 +1428,9 @@ linters:
 <p v-click class="muted" style="max-width:none">At DoorDash, Alex Hornbake built this as <code>xctx</code> for a Go monorepo that many teams share.</p>
 
 <!--
-[click] Stacking contexts and wrapping context.Canceled at every call site is easy to get wrong. So put it in a small package. [click] Its cancel function takes a cause, so callers have to give one. [click] It wraps context.Canceled, so errors.Is keeps working. The package's WithTimeout does the stack from Part 3.
+[click] Stacking contexts and wrapping context.Canceled at every call site is easy to get wrong. So put it in a small package. [click] Its cancel function takes a cause, so callers have to give one. [click] A nil cause still gets a message. [click] It wraps context.Canceled, so errors.Is keeps working. The package's WithTimeout does the stack from Part 3.
 
-[click] Then a forbidigo rule fails the build when someone calls the standard constructors. The context.WithTimeout calls from Part 2 become xctx.WithTimeout. The package still returns a plain context.Context, so every library works as before.
+[click] Then a forbidigo rule fails the build when someone calls the standard constructors, including the Cause versions. The context.WithTimeout calls from Part 2 become xctx.WithTimeout. The package still returns a plain context.Context, so every library works as before.
 
 [click] Alex Hornbake did this at DoorDash in early 2026. After the rollout, every cancel in that repo has a cause.
 -->
