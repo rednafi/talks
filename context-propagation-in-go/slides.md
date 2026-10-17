@@ -64,7 +64,7 @@ Writing at **rednafi.com**.
 </v-clicks>
 
 </div>
-<img v-click="1" class="about-gopher" src="/img/gopher-hiking.svg" alt="" />
+<img class="about-gopher" src="/img/gopher-hiking.svg" alt="" />
 </div>
 
 <!--
@@ -73,8 +73,7 @@ Writing at **rednafi.com**.
 ---
 layout: two-cols
 class: wide-left
-kicker: The problem
-title: The log says a context stopped, but it hides the reason
+title: The log doesn't say why the context stopped
 ---
 
 <div v-click>
@@ -105,12 +104,12 @@ title: The log says a context stopped, but it hides the reason
 
 <p v-click class="muted">The cancel often comes from another service or from a library.</p>
 
-<img v-click src="/img/gopher-mistake.svg" class="gopher sm" />
+<img src="/img/gopher-mistake.svg" class="gopher sm" />
 
 <!--
 [click] Errors like these are common in any Go service that talks to other services.
 
-[click] It can mean the client went away, [click] that a timeout in some caller fired, [click] that the pod is shutting down, [click] or that some code called cancel on purpose.
+[click] Any of these can cause it. [click] The client went away, [click] that a timeout in some caller fired, [click] that the pod is shutting down, [click] or that some code called cancel on purpose.
 
 [click] The log line doesn't tell me which one. Most of the time the cancel started in a service or a library I have never opened.
 -->
@@ -133,10 +132,11 @@ layout: default
 title: Overview
 ---
 
+<div class="side-gopher">
 <div class="overview">
 <div class="ov-item" v-click>
   <div class="ov-num">01</div>
-  <div class="ov-topic">Context basics</div>
+  <div class="ov-topic">Context primer</div>
 </div>
 <div class="ov-item" v-click>
   <div class="ov-num">02</div>
@@ -155,6 +155,8 @@ title: Overview
   <div class="ov-topic">Enforcing the rules with linters</div>
 </div>
 </div>
+<img src="/img/gopher-rocket.svg" class="gopher" />
+</div>
 
 <!--
 [click] First, what a context is, and the bugs I see around it. That part defines the problem.
@@ -166,12 +168,12 @@ The rest is advice. Each slide is one habit, with the bug it prevents. [click] S
 layout: section
 index: "01"
 kicker: Part 1
-title: Context basics
+title: Context primer
 ---
 
 ---
 layout: default
-kicker: Context basics
+kicker: Context primer
 title: The work continues after the client leaves
 ---
 
@@ -210,7 +212,7 @@ The query keeps its connection. Two other services do work for a client that has
 ---
 layout: two-cols
 class: wide-left
-kicker: Context basics
+kicker: Context primer
 title: Go can't stop a goroutine from the outside
 ---
 
@@ -230,7 +232,7 @@ When a request is canceled or times out, all the goroutines working on that requ
 
 ::right::
 
-<img v-click="1" src="/img/gopher-sage.svg" class="gopher" />
+<img src="/img/gopher-sage.svg" class="gopher" />
 
 <!--
 [click] The runtime can't stop that work for us.
@@ -244,7 +246,7 @@ When a request is canceled or times out, all the goroutines working on that requ
 
 ---
 layout: default
-kicker: Context basics
+kicker: Context primer
 title: context.Context
 ---
 
@@ -292,7 +294,7 @@ type Context interface {
 
 ---
 layout: default
-kicker: Context basics
+kicker: Context primer
 clicks: 7
 title: Each With function makes a child, so contexts form a tree
 ---
@@ -329,7 +331,7 @@ title: Each With function makes a child, so contexts form a tree
 -->
 ---
 layout: diagram
-kicker: Context basics
+kicker: Context primer
 title: A context travels inside a process and between processes
 note: "<span style='color:var(--accent)'>In-process</span>: your code passes <code>ctx</code> from function to function. <span style='color:var(--cat-2)'>Distributed</span>: gRPC and OpenTelemetry copy it into headers. They can copy only what your code passed down."
 ---
@@ -348,7 +350,7 @@ The distributed part depends on the in-process part. If placeOrder starts from c
 
 ---
 layout: default
-kicker: Context basics
+kicker: Context primer
 title: Each layer passes ctx to the next
 ---
 
@@ -413,7 +415,7 @@ If any layer drops ctx, every layer under it loses the signal.
 
 ---
 layout: default
-kicker: Context basics
+kicker: Context primer
 title: A cancel stops only the code that checks the context
 ---
 
@@ -478,7 +480,7 @@ This function resizes a list of images and takes ctx, but never looks at it. [cl
 
 ---
 layout: default
-kicker: Context basics
+kicker: Context primer
 title: The standard library stops when the context ends
 ---
 
@@ -528,7 +530,7 @@ All of this is documented, and has been for years. My logs are still full of con
 
 ---
 layout: default
-kicker: Context basics
+kicker: Context primer
 title: Go has documented these rules since 2014
 ---
 
@@ -563,7 +565,7 @@ I still find the same bugs in code review every month. The docs explain how to p
 
 ---
 layout: default
-kicker: Context basics
+kicker: Context primer
 title: Most context bugs I see are in these groups
 ---
 
@@ -745,7 +747,7 @@ case <-ctx.Done():
 <v-clicks>
 
 - Every blocking wait needs a `ctx.Done()` case, including channel sends
-- Since Go 1.23, a `time.After` timer that nobody reads is garbage collected
+- Return `ctx.Err()`, so the caller knows why the wait stopped
 
 </v-clicks>
 </div>
@@ -755,7 +757,7 @@ case <-ctx.Done():
 
 [click] A select waits on the timer and on Done. [click] A cancel ends the wait.
 
-[click] Use a select like this for any wait: a send, a receive, a timer. [click] Since Go 1.23, the runtime collects a time.After timer that nobody reads, so this doesn't leak timers.
+[click] Use a select like this for any wait: a send, a receive, a timer. [click] Return ctx.Err, so the caller sees Canceled or DeadlineExceeded and can stop its own retries. Since Go 1.23, the runtime also collects a time.After timer that nobody reads, so this doesn't leak timers.
 -->
 
 ---
@@ -783,11 +785,11 @@ go h.audit.Write(r.Context(), orderID)
 
 // Do: keep the values and set a new timeout.
 detached := context.WithoutCancel(r.Context())
-h.pool.Submit(func() {
+go func() {
     ctx, cancel := context.WithTimeout(detached, 5*time.Second)
     defer cancel()
     h.audit.Write(ctx, orderID)
-})
+}()
 ```
 
 </div>
@@ -800,8 +802,8 @@ h.pool.Submit(func() {
 <div class="points" style="--n: 2">
 <v-clicks>
 
-- `context.Background()` also works, but it loses the trace ID and the log fields
-- Use a pool, so shutdown can wait for the work
+- `context.Background()` also drops the cancel, but it loses the trace ID and the log fields
+- `WithoutCancel` keeps the trace ID and the log fields
 
 </v-clicks>
 </div>
@@ -811,7 +813,7 @@ h.pool.Submit(func() {
 
 [click] [click] WithoutCancel, from Go 1.21, keeps the values and drops the stop signal and the deadline. [click] That leaves the work with no time limit, so put your own timeout on top.
 
-[click] Background would stop the cancel too, but it loses the trace ID and every log field. [click] I send the work to a pool instead of a plain go statement, so that shutdown can wait for it. My post on supervised fire-and-forget has the details.
+[click] Background would stop the cancel too, but it loses the trace ID and every log field. [click] WithoutCancel keeps them. In production I send this work to a pool instead of a plain go statement, so that shutdown can wait for it. My post on supervised fire-and-forget has the details.
 -->
 
 ---
@@ -1165,7 +1167,7 @@ title: Put a value in the context only if the code works without it
 
 </v-clicks>
 
-<img v-click="1" src="/img/gopher-umbrella.svg" class="gopher sm" style="margin-top:1.5rem" />
+<img src="/img/gopher-umbrella.svg" class="gopher sm" style="margin-top:1.5rem" />
 
 ::right::
 
@@ -1440,6 +1442,7 @@ kicker: Wrap-up
 title: The checklist I use in code review
 ---
 
+<div class="side-gopher">
 <div class="checklist">
 
 <v-clicks>
@@ -1455,6 +1458,8 @@ title: The checklist I use in code review
 
 </v-clicks>
 
+</div>
+<img src="/img/gopher-knight.svg" class="gopher" />
 </div>
 
 <!--
@@ -1480,7 +1485,7 @@ title: Some cancels still come without a cause
 
 ::right::
 
-<img v-click="1" src="/img/gopher-soldering.svg" class="gopher" />
+<img src="/img/gopher-soldering.svg" class="gopher" />
 
 <!--
 One limit to know about. Causes help only where somebody sets them.

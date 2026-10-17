@@ -254,3 +254,7 @@ html.print .slidev-layout::before { display: none !important; }
 /* Don't/Do comments in code: bright, Tokyo Night orange and green */
 .slidev-layout .cm-dont { color: #ff9e64 !important; font-style: normal !important; font-weight: 600; }
 .slidev-layout .cm-do { color: #9ece6a !important; font-style: normal !important; font-weight: 600; }
+/* A list on the left and a gopher on the right. */
+.side-gopher { display: grid; grid-template-columns: minmax(0, 1fr) 14rem; column-gap: 3rem; align-items: center; }
+.side-gopher > .gopher { width: 100%; max-height: 22rem; object-fit: contain; margin: 0; }
+.side-gopher .checklist li { font-size: 1.12rem !important; }
