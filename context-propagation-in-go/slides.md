@@ -903,61 +903,60 @@ kicker: Giving every cancel a cause
 title: When ctx ends, return its cause
 ---
 
-<p v-click class="take" style="margin-top:0">A cause moves down to child contexts. An error moves up to the caller. So the error has to carry the cause.</p>
+<p v-click class="take" style="margin-top:0">A cause moves down to child contexts. Errors move up to the caller. So return the cause.</p>
 
-<Code gutter="17rem">
+<Code gutter="15rem">
 
 <div v-click>
 
 ```go
-// Don't: return the driver's error as it is.
-if err != nil {
-    return fmt.Errorf("find order: %w", err)
+// Don't: return ctx.Err() from the retry wait.
+select {
+case <-time.After(backoff(attempt)):
+case <-ctx.Done():
+    return ctx.Err()
 }
 ```
 
 </div>
 
-<Mark :line="3" v-click="2">says only that ctx ended</Mark>
+<Mark :line="5" v-click="2">context deadline exceeded</Mark>
 
 <div v-click>
 
 ```go
 
-// Do: return the cause when ctx has ended.
-if err != nil {
-    if ctx.Err() != nil {
-        err = context.Cause(ctx)
-    }
-    return fmt.Errorf("find order: %w", err)
+// Do: return the cause.
+select {
+case <-time.After(backoff(attempt)):
+case <-ctx.Done():
+    return context.Cause(ctx)
 }
 ```
 
 </div>
 
-<Mark :block="2" :line="5" v-click>ctx.Err() if nobody set a cause</Mark>
+<Mark :block="2" :line="6" v-click>the 5s timeout cause from placeOrder</Mark>
 
 </Code>
 
-<div v-click>
+<div class="points" style="--n: 2">
+<v-clicks>
 
-<Terminal :lines="[
-  '# Don’t',
-  'find order: context deadline exceeded',
-  '# Do',
-  'find order: placeOrder ord-123: 5s timeout: context deadline exceeded',
-]" />
+- If a call such as `db.QueryContext` fails after ctx ends, return `context.Cause(ctx)` too
+- With no cause set, `context.Cause(ctx)` returns `ctx.Err()`
 
+</v-clicks>
 </div>
 
 <!--
-[click] placeOrder set a cause on its context. The store runs under a child of that context, so it can read the cause. The handler sits above placeOrder. Its own ctx never sees that cause. The only way up is the returned error.
+[click] placeOrder set a cause on its context. Code below placeOrder runs under a child of that context, so it can read the cause. The handler sits above placeOrder. Its ctx never sees that cause. The only way up is the returned error.
 
-[click] Here the query failed because ctx ended. The driver's error only says that ctx ended.
+[click] This is the retry wait from Part 3. It returns ctx.Err, so the caller gets only context deadline exceeded.
 
-[click] So when ctx has ended, return its cause instead. [click] If nobody set a cause, Cause returns ctx.Err, so you lose nothing. Do the same in a select on ctx.Done.
+[click] Return context.Cause instead. [click] Now the caller gets placeOrder's reason. errors.Is still matches DeadlineExceeded, because the cause wraps it. The style guide says a function usually returns ctx.Err when ctx ends. Callers that check for it keep working. net/http does the same since Go 1.23.
 
-[click] Same error, now with the reason. errors.Is still matches DeadlineExceeded, because the cause wraps it. The style guide says a function usually returns ctx.Err when ctx ends. Callers that check for it keep working. net/http does the same since Go 1.23.
+[click] A library call works the same way. database/sql returns ctx.Err when ctx ends, so check ctx.Err and return the cause. [click] If nobody set a cause, Cause returns ctx.Err. So you lose nothing.
 -->
 ---
 layout: default
@@ -999,7 +998,7 @@ if err := placeOrder(r.Context(), r.PathValue("id")); err != nil {
 
 <Terminal :lines="[
   'level=ERROR msg=&quot;place order&quot;',
-  '    err=&quot;find order: placeOrder ord-123: 5s timeout: context deadline exceeded&quot;',
+  '    err=&quot;placeOrder ord-123: 5s timeout: context deadline exceeded&quot;',
 ]" />
 
 </div>
@@ -1009,7 +1008,7 @@ if err := placeOrder(r.Context(), r.PathValue("id")); err != nil {
 
 [click] Return the error up. Log it once, in the handler.
 
-[click] The error carries the cause. So here's the log line from the start of the talk, now with the reason. placeOrder's five-second timeout fired during the query. Dashboards can still group these with errors.Is.
+[click] The error carries the cause. So here's the log line from the start of the talk, now with the reason. placeOrder's five-second timeout fired during a retry wait. Dashboards can still group these with errors.Is.
 -->
 ---
 layout: section
