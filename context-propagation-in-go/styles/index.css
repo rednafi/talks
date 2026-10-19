@@ -1,3 +1,7 @@
+/* Don't and Do colors. A muted red and a muted green, set apart from the
+   Tokyo Night token colors (orange #ff9e64, green #9ece6a, pink #f7768e). */
+:root { --dont: #e0726b; --do: #7fc49b; }
+
 /* Overrides on top of tahta atelier. Keep this file small. */
 
 /* Content starts under the title instead of floating in the middle. */
@@ -253,8 +257,8 @@ html.print .slidev-layout::before { display: none !important; }
 .whoami h1, .whoami h2 { font-family: var(--font-mono) !important; font-weight: 600; letter-spacing: -0.01em; }
 
 /* Don't/Do comments in code: bright, Tokyo Night orange and green */
-.slidev-layout .cm-dont { color: #ff9e64 !important; font-style: normal !important; font-weight: 600; }
-.slidev-layout .cm-do { color: #9ece6a !important; font-style: normal !important; font-weight: 600; }
+.slidev-layout .cm-dont { color: var(--dont) !important; font-style: normal !important; font-weight: 600; }
+.slidev-layout .cm-do { color: var(--do) !important; font-style: normal !important; font-weight: 600; }
 /* A list on the left and a gopher on the right. */
 .side-gopher { display: grid; grid-template-columns: minmax(0, 1fr) 12rem; column-gap: 2rem; align-items: center; }
 .side-gopher > .gopher { width: 100%; max-height: 22rem; object-fit: contain; margin: 0; }

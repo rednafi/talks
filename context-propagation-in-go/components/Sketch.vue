@@ -146,13 +146,13 @@ const shown = (s: { at: number; until: number }) => $clicks.value >= s.at && $cl
 .sk-line { color: var(--line); }
 .sk-accent { color: var(--accent); }
 .sk-info { color: var(--cat-2); }
-.sk-dont { color: #ff9e64; }
-.sk-do { color: #9ece6a; }
+.sk-dont { color: var(--dont); }
+.sk-do { color: var(--do); }
 .tc-fg { fill: var(--fg); }
 .tc-dim { fill: var(--fg-dim); }
 .tc-line { fill: var(--fg-dim); }
 .tc-accent { fill: var(--accent); }
 .tc-info { fill: var(--cat-2); }
-.tc-dont { fill: #ff9e64; }
-.tc-do { fill: #9ece6a; }
+.tc-dont { fill: var(--dont); }
+.tc-do { fill: var(--do); }
 </style>

@@ -95,7 +95,7 @@ const swatch = computed(() => toPaths([gen.rectangle(0, axisY.value + 44, 34, 18
 .head path.hach { opacity: 0.55; }
 .tail { opacity: 0; transition: opacity 0.4s ease; }
 .tail.on { opacity: 1; }
-.after-waste .tail { color: #ff9e64; }
+.after-waste .tail { color: var(--dont); }
 .after-stop .tail, .after-clip .tail { color: var(--fg-dim); }
 .tail path.hach { opacity: 0.6; }
 .axis { color: var(--line); }
@@ -105,9 +105,9 @@ const swatch = computed(() => toPaths([gen.rectangle(0, axisY.value + 44, 34, 18
 .key .key-label { font: 19px 'Virgil', var(--font-body); fill: var(--fg-dim); }
 .key { color: inherit; }
 .in-tail { font: 19px 'Virgil', var(--font-body); fill: var(--fg-dim); }
-.note { color: #ff9e64; }
+.note { color: var(--dont); }
 .note path { opacity: 0.8; }
-.note text { font: 20px 'Virgil', var(--font-body); fill: #ff9e64; }
-.after-waste .key { color: #ff9e64; }
+.note text { font: 20px 'Virgil', var(--font-body); fill: var(--dont); }
+.after-waste .key { color: var(--dont); }
 .after-stop .key, .after-clip .key { color: var(--fg-dim); }
 </style>

@@ -83,7 +83,7 @@ const lines = (n: N) => n.label.split('\n')
 .ct-node .ct-bg { fill: var(--code-bg); stroke: none; }
 .ct-node .ct-ol { fill: none; stroke: currentColor; stroke-linecap: round; transition: color 0.4s; }
 .ct-node text { font: 19px 'Virgil', var(--font-body); fill: var(--fg); text-anchor: middle; transition: fill 0.4s; }
-.ct-node .ct-x { opacity: 0; transition: opacity 0.3s; color: #ff9e64; }
+.ct-node .ct-x { opacity: 0; transition: opacity 0.3s; color: var(--dont); }
 .ct-node .ct-x path { fill: none; stroke: currentColor; stroke-linecap: round; }
 .ct-node.stop { color: color-mix(in oklab, var(--fg-dim) 55%, transparent); }
 .ct-node.stop text { fill: var(--fg-dim); }
@@ -91,7 +91,7 @@ const lines = (n: N) => n.label.split('\n')
 .ct-edge { color: color-mix(in oklab, var(--accent) 75%, transparent); }
 .ct-edge path { fill: none; stroke: currentColor; stroke-linecap: round; transition: color 0.4s; }
 .ct-edge.stop { color: color-mix(in oklab, var(--fg-dim) 45%, transparent); }
-.ct-ev { font: 19px 'Virgil', var(--font-body); fill: #ff9e64; opacity: 0; transition: opacity 0.3s; }
+.ct-ev { font: 19px 'Virgil', var(--font-body); fill: var(--dont); opacity: 0; transition: opacity 0.3s; }
 .ct-ev.on { opacity: 1; }
 .ct-note { font: 17px 'Virgil', var(--font-body); fill: var(--fg-dim); opacity: 0; transition: opacity 0.3s; }
 .ct-note.on { opacity: 1; }
