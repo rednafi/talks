@@ -13,7 +13,8 @@
 //   { cross: [cx, cy, r], color?, at? }
 //   { check: [cx, cy, r], color?, at? }
 // color (stroke) and tc (text): fg | dim | line | accent | info | dont | do
-// `fill: true` hachures the shape in its stroke color.
+// `fill: true` hachures the shape in its stroke color; `fs: 'cross-hatch'` cross-fills it.
+// All text, `mono` too, is set in Virgil, so a diagram reads as one drawing.
 // `until` hides the item again from that click on.
 import { computed } from 'vue'
 import { useSlideContext } from '@slidev/client'
@@ -35,6 +36,7 @@ const shapes = computed(() => (props.items as any[]).map((it, i) => {
     strokeLineDash: it.dashed ? [7, 6] : undefined,
     fill: it.fill ? 'currentColor' : undefined,
     roughness: it.roughness ?? 1.1,
+    fillStyle: it.fs ?? 'hachure',
   })
   let ds: any[] = []
   let bg: { kind: string; a: number[] } | null = null
@@ -134,7 +136,7 @@ const shown = (s: { at: number; until: number }) => $clicks.value >= s.at && $cl
 .sk path.hach { opacity: 0.45; }
 .sk-bg { fill: var(--code-bg); stroke: none; }
 .sk text { font-family: 'Virgil', var(--font-body); stroke: none; }
-.sk text.mono { font-family: var(--font-mono); }
+.sk text.mono { font-family: 'Virgil', var(--font-body); }
 .sk-fg { color: color-mix(in oklab, var(--fg) 82%, transparent); }
 .sk-dim { color: color-mix(in oklab, var(--fg-dim) 85%, transparent); }
 .sk-line { color: var(--line); }

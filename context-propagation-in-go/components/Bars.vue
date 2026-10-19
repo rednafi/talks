@@ -33,7 +33,7 @@ const drawn = computed(() => props.rows.map((r, i) => {
   const y = TOP + i * ROW
   const cut = Math.min(Math.max(props.marker.at, r.from), r.to)
   const head = cut > r.from
-    ? toPaths([gen.rectangle(x(r.from), y, x(cut) - x(r.from), BAR, base(i * 11 + 1, { fill: 'currentColor', fillStyle: 'solid', roughness: 0.9 }))])
+    ? toPaths([gen.rectangle(x(r.from), y, x(cut) - x(r.from), BAR, base(i * 11 + 1, { fill: 'currentColor', fillStyle: 'cross-hatch', hachureGap: 7, roughness: 1 }))])
     : []
   let tail = []
   if (r.to > cut) {
@@ -68,7 +68,7 @@ const swatch = computed(() => toPaths([gen.rectangle(0, axisY.value + 44, 34, 18
   <svg class="bars" :class="`after-${after}`" :viewBox="`0 0 ${W} ${H}`" xmlns="http://www.w3.org/2000/svg">
     <g v-for="(r, i) in drawn" :key="i">
       <text class="lab" :x="0" :y="r.y + BAR / 2" dominant-baseline="central">{{ r.label }}</text>
-      <g class="head"><path v-for="(p, j) in r.head" :key="j" :d="p.d" :fill="p.solid ? 'currentColor' : 'none'" stroke="currentColor" :stroke-width="p.sw" /></g>
+      <g class="head"><path v-for="(p, j) in r.head" :key="j" :d="p.d" fill="none" stroke="currentColor" :stroke-width="p.sw" :class="{ hach: p.hach }" /></g>
       <g class="tail" :class="{ on: tailOn }"><path v-for="(p, j) in r.tail" :key="j" :d="p.d" fill="none" stroke="currentColor" :stroke-width="p.sw" :class="{ hach: p.hach }" /></g>
     </g>
     <g class="axis"><path v-for="(p, j) in axis" :key="j" :d="p.d" fill="none" stroke="currentColor" :stroke-width="p.sw" /></g>
@@ -90,15 +90,16 @@ const swatch = computed(() => toPaths([gen.rectangle(0, axisY.value + 44, 34, 18
 <style scoped>
 .bars { display: block; width: 100%; height: auto; margin-top: 1.4rem; overflow: visible; }
 .bars path { stroke-linecap: round; stroke-linejoin: round; }
-.lab { font: 500 17px var(--font-mono); fill: var(--fg); }
-.head { color: color-mix(in oklab, var(--accent) 70%, transparent); }
+.lab { font: 20px 'Virgil', var(--font-body); fill: var(--fg); }
+.head { color: var(--accent); }
+.head path.hach { opacity: 0.55; }
 .tail { opacity: 0; transition: opacity 0.4s ease; }
 .tail.on { opacity: 1; }
 .after-waste .tail { color: #ff9e64; }
 .after-stop .tail, .after-clip .tail { color: var(--fg-dim); }
 .tail path.hach { opacity: 0.6; }
 .axis { color: var(--line); }
-.tick { font: 15px var(--font-mono); fill: var(--fg-dim); }
+.tick { font: 17px 'Virgil', var(--font-body); fill: var(--fg-dim); }
 .mk { color: var(--cat-2); }
 .mk-label { font: 20px 'Virgil', var(--font-body); fill: var(--cat-2); }
 .key .key-label { font: 19px 'Virgil', var(--font-body); fill: var(--fg-dim); }
