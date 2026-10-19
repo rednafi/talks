@@ -1206,55 +1206,72 @@ The style guide says to document a function that returns an error other than ctx
 -->
 ---
 layout: default
+class: log-once
 kicker: Giving every cancel a cause
+clicks: 4
 title: Log the error once, in the handler
 ---
 
-<Code gutter="15rem">
+<Code gutter="12rem">
 
 <div v-click>
 
 ```go
-// Don't: log in the store and return the error too.
-slog.ErrorContext(ctx, "find order failed", "err", err)
-return Order{}, fmt.Errorf("find order: %w", err)
-```
-
-</div>
-
-<Mark :line="2" v-click="1">one more line for the same failure</Mark>
-
-<div v-click>
-
-```go
-
-// Do: log once, in the handler.
-if err := placeOrder(r.Context(), r.PathValue("id")); err != nil {
-    slog.ErrorContext(r.Context(), "place order", "err", err)
-    http.Error(w, "order failed", http.StatusInternalServerError)
-    return
+// Don't: log the error in placeOrder, and also return it.
+if err := retry(ctx, charge); err != nil {
+    slog.ErrorContext(ctx, "retry failed", "err", err)
+    return err
 }
 ```
 
 </div>
 
+<Mark :line="3" v-click="1">the handler logs it again</Mark>
+
 </Code>
+
+<div v-click class="log-bad">
+
+<Terminal :lines="[
+  'level=ERROR msg=&quot;retry failed&quot; err=&quot;placeOrder ord-123: 5s timeout: context deadline exceeded&quot;',
+  'level=ERROR msg=&quot;place order&quot;  err=&quot;placeOrder ord-123: 5s timeout: context deadline exceeded&quot;',
+]" />
+
+</div>
+
+<Code gutter="12rem">
 
 <div v-click>
 
+```go
+// Do: log once, in the handler. placeOrder only returns the error.
+if err := placeOrder(ctx, id); err != nil {
+    slog.ErrorContext(ctx, "place order", "err", err)
+}
+```
+
+</div>
+
+<Mark :line="3" v-click="3">the only log line</Mark>
+
+</Code>
+
+<div v-click="4" class="log-good">
+
 <Terminal :lines="[
-  'level=ERROR msg=&quot;place order&quot;',
-  '    err=&quot;placeOrder ord-123: 5s timeout: context deadline exceeded&quot;',
+  'level=ERROR msg=&quot;place order&quot; err=&quot;placeOrder ord-123: 5s timeout: context deadline exceeded&quot;',
 ]" />
 
 </div>
 
 <!--
-[click] If every layer logs and returns, one failure prints many lines. The style guide says to let the caller log. My post on stacked log lines has more.
+[click] placeOrder logs the error and then returns it. The handler logs the same error again.
 
-[click] Return the error up. Log it once, in the handler.
+[click] So one failure gives two log lines. With more layers, you get more lines. The style guide says to let the caller log. My post on stacked log lines has more.
 
-[click] The error carries the cause. So here's the log line from the start of the talk, now with the reason. placeOrder's five-second timeout fired during a retry wait. Dashboards can still group these with errors.Is.
+[click] placeOrder only returns the error. The handler logs it once.
+
+[click] This is the log line from the start of the talk, now with the cause. placeOrder's 5s timeout fired during a retry wait. Dashboards can still group these lines with errors.Is.
 -->
 ---
 layout: section

@@ -266,3 +266,10 @@ html.print .slidev-layout::before { display: none !important; }
 
 /* Excalidraw's hand-drawn font, used only inside <Sketch> */
 @font-face { font-family: 'Virgil'; src: url('/fonts/Virgil.woff2') format('woff2'); font-display: block; }
+
+/* Log-once slide: short log boxes, so both halves fit at full size. */
+.log-once .terminal-bar { display: none; }
+.log-once .terminal-body { padding: 0.55rem 0.9rem !important; }
+.log-once .terminal { margin-top: 0.5rem !important; margin-bottom: 0.9rem !important; }
+.log-once .log-bad .terminal { border-left: 3px solid var(--dont) !important; }
+.log-once .log-good .terminal { border-left: 3px solid var(--do) !important; }
