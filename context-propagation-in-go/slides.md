@@ -1407,28 +1407,42 @@ linters:
 ---
 layout: default
 kicker: Wrap-up
+clicks: 8
 title: The checklist I use in code review
 ---
 
-<div class="side-gopher">
-<div class="checklist">
-
-<v-clicks>
-
-1. Pass `ctx` to each call, and don't store it in a struct
-2. Check `ctx` in every loop and every blocking wait
-3. Give background work `WithoutCancel` and a timeout
-4. Put only optional request data in a context, and hide the key
-5. Give every cancel a cause, including the normal return
-6. Stack `WithCancelCause` on a timeout to cover every path
-7. Wrap `Canceled` or `DeadlineExceeded` in every cause
-8. Return `context.Cause(ctx)`, and log once in the handler
-
-</v-clicks>
-
-</div>
-<img src="/img/gopher-knight.svg" class="gopher" />
-</div>
+<Sketch :w="1000" :h="420" style="margin-top:0.6rem" :items="[
+  { box: [14, 15, 30, 30], color: 'dim', roughness: 1.3 },
+  { check: [29, 30, 12], color: 'do', sw: 3, at: 1 },
+  { text: 'Pass ctx to each call, and don\'t store it in a struct', x: 64, y: 30, size: 23, anchor: 'start', color: 'fg', at: 1 },
+  { box: [14, 67, 30, 30], color: 'dim', roughness: 1.3 },
+  { check: [29, 82, 12], color: 'do', sw: 3, at: 2 },
+  { text: 'Check ctx in every loop and every blocking wait', x: 64, y: 82, size: 23, anchor: 'start', color: 'fg', at: 2 },
+  { box: [14, 119, 30, 30], color: 'dim', roughness: 1.3 },
+  { check: [29, 134, 12], color: 'do', sw: 3, at: 3 },
+  { text: 'Give background work WithoutCancel and a timeout', x: 64, y: 134, size: 23, anchor: 'start', color: 'fg', at: 3 },
+  { box: [14, 171, 30, 30], color: 'dim', roughness: 1.3 },
+  { check: [29, 186, 12], color: 'do', sw: 3, at: 4 },
+  { text: 'Put only optional request data in a context, and hide the key', x: 64, y: 186, size: 23, anchor: 'start', color: 'fg', at: 4 },
+  { box: [14, 223, 30, 30], color: 'dim', roughness: 1.3 },
+  { check: [29, 238, 12], color: 'do', sw: 3, at: 5 },
+  { text: 'Give every cancel a cause, including the normal return', x: 64, y: 238, size: 23, anchor: 'start', color: 'fg', at: 5 },
+  { box: [14, 275, 30, 30], color: 'dim', roughness: 1.3 },
+  { check: [29, 290, 12], color: 'do', sw: 3, at: 6 },
+  { text: 'Stack WithCancelCause on a timeout to cover every path', x: 64, y: 290, size: 23, anchor: 'start', color: 'fg', at: 6 },
+  { box: [14, 327, 30, 30], color: 'dim', roughness: 1.3 },
+  { check: [29, 342, 12], color: 'do', sw: 3, at: 7 },
+  { text: 'Wrap Canceled or DeadlineExceeded in every cause', x: 64, y: 342, size: 23, anchor: 'start', color: 'fg', at: 7 },
+  { box: [14, 379, 30, 30], color: 'dim', roughness: 1.3 },
+  { check: [29, 394, 12], color: 'do', sw: 3, at: 8 },
+  { text: 'Return context.Cause(ctx), and log once in the handler', x: 64, y: 394, size: 23, anchor: 'start', color: 'fg', at: 8 },
+  { curve: [[808, 12], [820, 20], [820, 70.0], [832, 82.0], [820, 94.0], [820, 144], [808, 152]], color: 'accent', sw: 2, roughness: 0.6, at: 3 },
+  { text: 'how long\nwork runs', x: 848, y: 82.0, size: 21, anchor: 'start', color: 'accent', at: 3 },
+  { curve: [[808, 168], [820, 176], [820, 174.0], [832, 186.0], [820, 198.0], [820, 196], [808, 204]], color: 'accent', sw: 2, roughness: 0.6, at: 4 },
+  { text: 'values', x: 848, y: 186.0, size: 21, anchor: 'start', color: 'accent', at: 4 },
+  { curve: [[808, 220], [820, 228], [820, 304.0], [832, 316.0], [820, 328.0], [820, 404], [808, 412]], color: 'accent', sw: 2, roughness: 0.6, at: 8 },
+  { text: 'causes', x: 848, y: 316.0, size: 21, anchor: 'start', color: 'accent', at: 8 },
+]" />
 
 <!--
 The checklist follows the order of the talk.
