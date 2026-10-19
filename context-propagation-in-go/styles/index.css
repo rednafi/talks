@@ -273,3 +273,9 @@ html.print .slidev-layout::before { display: none !important; }
 .log-once .terminal { margin-top: 0.5rem !important; margin-bottom: 0.9rem !important; }
 .log-once .log-bad .terminal { border-left: 3px solid var(--dont) !important; }
 .log-once .log-good .terminal { border-left: 3px solid var(--do) !important; }
+
+/* QR slide: a hand-drawn frame and hand-written text, like the diagrams. */
+.qr .qr-code > img:first-child { border-radius: 0; }
+.qr .qr-frame { position: absolute; top: -1.3rem; left: -1.3rem; width: calc(100% + 2.6rem) !important; pointer-events: none; }
+.slidev-layout .qr p { font-family: 'Virgil', var(--font-body); font-size: 1.9rem !important; margin-top: 2.2rem; }
+.qr span { font-family: 'Virgil', var(--font-body); font-size: 1.15rem; }
