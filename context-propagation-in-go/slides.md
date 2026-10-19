@@ -903,59 +903,61 @@ kicker: Giving every cancel a cause
 title: When ctx ends, return its cause
 ---
 
-<Code gutter="15rem">
+<p v-click class="take" style="margin-top:0">A cause moves down to child contexts. An error moves up to the caller. So the error has to carry the cause.</p>
+
+<Code gutter="17rem">
 
 <div v-click>
 
 ```go
-// Don't: return only what the driver says.
-row := s.db.QueryRowContext(ctx, findOrderSQL, id)
-if err := row.Scan(&o.ID, &o.Status); err != nil {
-    return Order{}, fmt.Errorf("find order: %w", err)
+// Don't: return the driver's error as it is.
+if err != nil {
+    return fmt.Errorf("find order: %w", err)
 }
 ```
 
 </div>
 
-<Mark :line="4" v-click="1">says what ended, not why</Mark>
+<Mark :line="3" v-click="2">says only that ctx ended</Mark>
 
 <div v-click>
 
 ```go
 
-// Do: when ctx has ended, return its cause.
-if err := row.Scan(&o.ID, &o.Status); err != nil {
+// Do: return the cause when ctx has ended.
+if err != nil {
     if ctx.Err() != nil {
         err = context.Cause(ctx)
     }
-    return Order{}, fmt.Errorf("find order: %w", err)
+    return fmt.Errorf("find order: %w", err)
 }
 ```
 
 </div>
 
-<Mark :block="2" :line="5" v-click>the cause that placeOrder set</Mark>
-<Mark :block="2" :line="7" v-click>errors.Is still matches</Mark>
+<Mark :block="2" :line="5" v-click>ctx.Err() if nobody set a cause</Mark>
 
 </Code>
 
-<div class="points" style="--n: 2">
-<v-clicks>
+<div v-click>
 
-- In a `select` on `ctx.Done()`, return `context.Cause(ctx)` the same way
-- With no cause set, `context.Cause(ctx)` returns `ctx.Err()`
+<Terminal :lines="[
+  '# Don’t',
+  'find order: context deadline exceeded',
+  '# Do',
+  'find order: placeOrder ord-123: 5s timeout: context deadline exceeded',
+]" />
 
-</v-clicks>
 </div>
 
 <!--
-A cause moves down the tree. An error moves up the call stack. The handler is above placeOrder, so its ctx never sees placeOrder's cause. The error has to carry it up.
+[click] placeOrder set a cause on its context. The store runs under a child of that context, so it can read the cause. The handler sits above placeOrder. Its own ctx never sees that cause. The only way up is the returned error.
 
-[click] Here the driver returns an error that only says ctx ended.
+[click] Here the query failed because ctx ended. The driver's error only says that ctx ended.
 
-[click] [click] If ctx has ended, return its cause instead. [click] The cause wraps DeadlineExceeded, so errors.Is still matches. The style guide says a function usually returns ctx.Err when ctx ends. Callers that check for that keep working. net/http does the same since Go 1.23.
+[click] So when ctx has ended, return its cause instead. [click] If nobody set a cause, Cause returns ctx.Err, so you lose nothing. Do the same in a select on ctx.Done.
 
-[click] Do the same in the select from Part 3. [click] If nobody set a cause, Cause returns ctx.Err. So you lose nothing.
+[click] Same error, now with the reason. errors.Is still matches DeadlineExceeded, because the cause wraps it. The style guide says a function usually returns ctx.Err when ctx ends. Callers that check for it keep working. net/http does the same since Go 1.23.
 -->
 ---
 layout: default
