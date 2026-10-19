@@ -20,7 +20,7 @@ transition: fade
 ---
 
 <!--
-This talk is about context.Context: why Go has it, how it moves through a program, how code gets it wrong, and the advice and tools I use to keep it working.
+This talk is about context.Context. What it is, and how to use it so that every cancel tells you why.
 -->
 
 ---
@@ -38,7 +38,7 @@ class: qr-slide
 </div>
 
 <!--
-Before I start: this code opens a PDF of the slides, so there's no need to take photos.
+This code opens the slides as a PDF. No need to take photos.
 -->
 ---
 layout: default
@@ -69,6 +69,52 @@ Writing at **rednafi.com**.
 
 <!--
 [click] Hi, I'm Redowan. [click] I oscillate between product and platform work, [click] and I care most about how distributed systems fail at scale. [click] I write at rednafi.com, [click] and these are my links.
+-->
+---
+layout: default
+title: Overview
+---
+
+<div class="side-gopher">
+<div class="overview">
+<div class="ov-item" v-click>
+  <div class="ov-num">01</div>
+  <div class="ov-topic">A log line with no cause</div>
+</div>
+<div class="ov-item" v-click>
+  <div class="ov-num">02</div>
+  <div class="ov-topic">Context primer</div>
+</div>
+<div class="ov-item" v-click>
+  <div class="ov-num">03</div>
+  <div class="ov-topic">Passing a context down</div>
+</div>
+<div class="ov-item" v-click>
+  <div class="ov-num">04</div>
+  <div class="ov-topic">Giving every cancel a cause</div>
+</div>
+<div class="ov-item" v-click>
+  <div class="ov-num">05</div>
+  <div class="ov-topic">Context values</div>
+</div>
+<div class="ov-item" v-click>
+  <div class="ov-num">06</div>
+  <div class="ov-topic">Enforcing the rules</div>
+</div>
+<div class="ov-item" v-click>
+  <div class="ov-num">07</div>
+  <div class="ov-topic">Checklist and limits</div>
+</div>
+</div>
+<img src="/img/gopher-rocket.svg" class="gopher" />
+</div>
+
+<!--
+[click] First, the problem: a log line that doesn't say why the context stopped.
+
+[click] Then a short primer. What a context carries, and how it ends. [click] Then four habits for passing it down. [click] Then the core of the talk. Every cancel gets a cause, and the cause gets to the log. [click] Then values. [click] Then tools that check all of this. [click] Last, a checklist for code review, and the cancels that still have no cause.
+
+Each slide is one rule and the bug it prevents. Take the ones that fit your code.
 -->
 ---
 layout: two-cols
@@ -107,55 +153,17 @@ title: The log doesn't say why the context stopped
 <img src="/img/gopher-mistake.svg" class="gopher sm" />
 
 <!--
-[click] Errors like these are common in any Go service that talks to other services.
+[click] I see logs like this in most Go services that call other services.
 
-[click] Any of these can stop the context. [click] The client went away, [click] a caller's deadline passed, [click] the server started to shut down, [click] or some code called cancel.
+[click] Any of these can stop the context. [click] The client went away. [click] A caller's deadline passed. [click] The server started to shut down. [click] Or some code called cancel.
 
-[click] The log line doesn't tell me which one. Most of the time the cancel started in a service or a library I have never opened.
+[click] The log doesn't say which one. The cancel often started in a library or a service I've never read.
 -->
 
----
-layout: default
-title: Overview
----
-
-<div class="side-gopher">
-<div class="overview">
-<div class="ov-item" v-click>
-  <div class="ov-num">01</div>
-  <div><div class="ov-topic">Context primer</div><div class="ov-desc">What a context carries, the two ways it ends, and the context tree</div></div>
-</div>
-<div class="ov-item" v-click>
-  <div class="ov-num">02</div>
-  <div><div class="ov-topic">Passing a context down</div><div class="ov-desc">Use the caller's ctx, pass it to each call, wait on Done, and detach background work</div></div>
-</div>
-<div class="ov-item" v-click>
-  <div class="ov-num">03</div>
-  <div><div class="ov-topic">Giving every cancel a cause</div><div class="ov-desc">Set a cause, wrap the sentinel, return the cause, and log it once</div></div>
-</div>
-<div class="ov-item" v-click>
-  <div class="ov-num">04</div>
-  <div><div class="ov-topic">Context values</div><div class="ov-desc">What goes in a context, and how to hide the key</div></div>
-</div>
-<div class="ov-item" v-click>
-  <div class="ov-num">05</div>
-  <div><div class="ov-topic">Enforcing the rules</div><div class="ov-desc">Linters, and a wrapper that makes every cancel take a cause</div></div>
-</div>
-</div>
-<img src="/img/gopher-rocket.svg" class="gopher" />
-</div>
-
-<!--
-[click] First, a short primer: what a context carries, and the two ways it ends.
-
-[click] Then four habits for passing it down. [click] Then the core of the talk: every cancel gets a cause, and the cause reaches the log. [click] Then values. [click] Last, tools that check all of this for you.
-
-Each slide is one rule and the bug it prevents, so you can take the ones that fit your code.
--->
 ---
 layout: section
-index: "01"
-kicker: Part 1
+index: "02"
+kicker: Part 2
 title: Context primer
 ---
 
@@ -188,13 +196,13 @@ title: The work continues after the client leaves
 </div>
 
 <!--
-This is one request. The handler queries the database, then calls inventory, then calls payments.
+This is one request. The handler queries the database, then calls inventory, then payments.
 
-At 500 milliseconds the client gives up. The user closed the app, or a load balancer timed out.
+At 500 milliseconds the client gives up. Maybe the user closed the app. Nothing tells the handler, so everything after the line is wasted.
 
-Nothing tells the handler, so all the work after the line is wasted. Go has no way to stop a goroutine from the outside. The work has to be told to stop, and then stop itself. The context package does the telling.
+The query holds its connection. Two services do work that nobody reads. During an incident, clients retry, and this waste adds to the load.
 
-The query keeps its connection. Two other services do work for a client that has left. During an incident, clients time out and retry, and this extra work adds to the load that caused the timeouts.
+Go can't stop a goroutine from the outside. The work has to be told to stop, and then stop itself. That's what context is for.
 -->
 
 ---
@@ -232,17 +240,17 @@ type Context interface {
 <v-clicks at="7">
 
 - Only the code that creates a context can cancel it
-- A context is read-only. To add a deadline or a value, make a child context
+- A context is read-only, so you add a deadline or a value with a child
 
 </v-clicks>
 </div>
 
 <!--
-[click] The package doc says what a context is for. Note "between processes". I come back to that in a few slides.
+[click] The package doc says what a context is for. Note "between processes". We'll get there.
 
-[click] This is the whole interface. [click] Deadline tells the work when to give up. [click] Done is a channel that closes when the work should stop. Any number of goroutines can wait on it. Nothing stops on its own: code has to watch Done, or pass ctx to code that does, such as the HTTP client or database/sql. [click] Err tells you how it ended, and it has only two answers: Canceled or DeadlineExceeded. The next slide shows where they come from. [click] Value carries data about the request, such as a trace ID.
+[click] This is the whole interface. [click] Deadline says when to give up. [click] Done is a channel. It closes when the work should stop. Nothing stops on its own. Code has to watch Done, or pass ctx to code that does, like the HTTP client or database/sql. [click] Err says how the context ended. It has only two answers. The next slide shows where they come from. [click] Value carries request data, like a trace ID.
 
-[click] The interface has no Cancel method. The function that gets a cancel signal is usually not the one that sends it, so a child can't cancel its parent. [click] A context is also read-only. You change it by wrapping it.
+[click] There's no Cancel method. Only the code that made the context can cancel it, so a child can't cancel its parent. [click] A context is read-only. You change it by wrapping it in a child.
 -->
 
 ---
@@ -291,11 +299,13 @@ ctx.Err() // context.DeadlineExceeded
 </div>
 
 <!--
-[click] A context ends in one of two ways. The first is a call to cancel. [click] After that, Err returns context.Canceled.
+[click] A context ends in one of two ways. One is a call to cancel. [click] Then Err returns context.Canceled.
 
-[click] The second is a deadline. [click] When it passes, Err returns context.DeadlineExceeded.
+[click] The other is a deadline. [click] When it passes, Err returns context.DeadlineExceeded.
 
-These are the two lines from the start of the talk. [click] context canceled means some code called cancel: the HTTP server when the client disconnects, signal.NotifyContext when SIGTERM arrives, or your own code. [click] deadline exceeded means a timer ran out. A child gets the same error as its parent, so the error doesn't say which context ended, or why.
+These are the two lines from the start of the talk. [click] Canceled means some code called cancel. The HTTP server does it when the client disconnects. signal.NotifyContext does it on SIGTERM. Or your own code does it. [click] DeadlineExceeded means a timer ran out.
+
+A child gets its parent's error. So the error doesn't say which context ended, or why.
 -->
 ---
 layout: default
@@ -315,24 +325,24 @@ title: Each With function makes a child, so contexts form a tree
 <CtxTree />
 <div class="stack">
 <p class="muted" v-click="[6, 7]">The 2s timeout stops only the branch below it.</p>
-<p class="muted" v-click="7">When the client hangs up, all work below the request stops, except the WithoutCancel branch.</p>
+<p class="muted" v-click="7">When the client hangs up, everything below the request stops. The WithoutCancel branch keeps going.</p>
 </div>
 </div>
 
 <!--
-[click] Each child has one parent, so the contexts in a request form a tree, with Background at the root. The server gives each request its own context.
+[click] Each child has one parent, so the contexts in a request form a tree. Background is the root. The server gives each request its own context.
 
-[click] WithCancel returns a child and a function that cancels it. The request context works like this: the server cancels it when the client goes away.
+[click] WithCancel returns a child and a cancel function. The server cancels the request context when the client goes away.
 
-[click] WithTimeout and WithDeadline do the same with a timer. Here the handler gives the query and the RPC two seconds.
+[click] WithTimeout does the same with a timer. Here the handler gives the query and the RPC two seconds.
 
-[click] WithValue adds one value, here a trace ID, and the logger reads it.
+[click] WithValue adds one value. Here it's a trace ID for the logger.
 
-[click] WithoutCancel, from Go 1.21, keeps the values and drops the stop signal. Part 2 uses it for work that has to finish.
+[click] WithoutCancel keeps the values and drops the cancel. It's from Go 1.21, and Part 3 uses it.
 
-[click] When the timer fires, the query and the RPC stop. The rest of the tree keeps going. A cancel moves down the tree and never up.
+[click] When the timer fires, the query and the RPC stop. The rest keeps going. A cancel moves down the tree, never up.
 
-[click] When the client hangs up, the whole request stops. Only the branch under WithoutCancel keeps going, and it still has the trace ID. A value lookup goes up, from the child to the root.
+[click] When the client hangs up, the whole request stops. Only the WithoutCancel branch keeps going, and it still has the trace ID.
 -->
 ---
 layout: diagram
@@ -344,19 +354,19 @@ note: "<span style='color:var(--accent)'>In-process</span>: your code passes <co
 <TwoLevels />
 
 <!--
-"Context propagation" can mean two things.
+"Context propagation" means two things.
 
-The in-process part is the arrows inside each service. Your code passes ctx from the handler to the service to the client. Most of this talk is about this part.
+Inside a process, your code passes ctx from the handler to the service to the client. Most of this talk is about that part.
 
-The distributed part is the arrow between the two services. The payments client makes a gRPC call to the payment service. The gRPC client and the OpenTelemetry middleware read the deadline and the trace from the ctx you give them, and write them into headers. The server reads the headers and builds a new context.
+Between processes, the gRPC client and OpenTelemetry read the deadline and the trace from ctx. They write them into headers. The server reads the headers and builds a new context.
 
-The distributed part depends on the in-process part. If placeOrder starts from context.Background, the payments client gets a context with no deadline and no trace, and has nothing to send.
+The second part needs the first. If placeOrder starts from context.Background, the payments client has no deadline and no trace to send.
 -->
 
 ---
 layout: section
-index: "02"
-kicker: Part 2
+index: "03"
+kicker: Part 3
 title: Passing a context down
 ---
 
@@ -403,11 +413,11 @@ return s.store.Find(ctx, id)
 </div>
 
 <!--
-[click] This is the bug I see most. context.Background starts a new tree in the middle of a request. Nothing above this line can stop the query, the trace splits in two, and the next service gets no deadline.
+[click] This is the bug I see most. context.Background starts a new tree in the middle of a request. Callers can't stop the query anymore. The trace splits in two. The next service gets no deadline.
 
-[click] The fix is to pass the ctx you got. Name it ctx and make it the first argument. Sameer Ajmani wrote in 2014 that Google requires this on every function between incoming and outgoing requests.
+[click] The fix is to pass the ctx you got. Name it ctx and make it the first argument.
 
-[click] Background belongs at the root of the tree: main and init. [click] In tests, use t.Context, added in Go 1.24. It is canceled before the test's cleanup functions run. [click] When you migrate old code and don't have a context yet, TODO marks the place, and you can grep for it. [click] And never pass nil.
+[click] Background belongs at the root, in main and init. [click] In tests, use t.Context, from Go 1.24. [click] When old code has no context yet, use TODO. You can grep for it later. [click] And never pass nil.
 -->
 
 ---
@@ -452,9 +462,9 @@ When you store the context in a struct, you obscure lifetime to the callers, or 
 </div>
 
 <!--
-[click] This Notifier got its context from whatever request built it. A caller with a 200 millisecond timeout can't give it to Send. When the stored context is canceled, every later Send fails with context canceled, because the request that built the Notifier ended.
+[click] This Notifier got its context from the request that built it. A caller with a 200 millisecond timeout can't give it to Send. When that old request ends, every later Send fails with context canceled.
 
-[click] Take ctx as a parameter on each method. The caller's deadline and cancel then apply to the call.
+[click] Take ctx as a parameter on each method. Then each call gets the caller's deadline and cancel.
 
 [click] The Go blog post on structs says the same.
 -->
@@ -506,11 +516,11 @@ case <-ctx.Done():
 </div>
 
 <!--
-[click] This is a retry loop that passes ctx to the call, and still ignores it. time.Sleep doesn't take a context. If the request is canceled during the backoff, the loop sleeps anyway, retries, fails at once, and sleeps again.
+[click] This retry loop passes ctx to the call, but still ignores it. time.Sleep doesn't take a context. If the request is canceled during the backoff, the loop sleeps anyway.
 
 [click] A select waits on the timer and on Done. [click] A cancel ends the wait.
 
-[click] Use a select like this for any wait: a send, a receive, a timer. [click] In a loop, check ctx.Err before each item. The context only tells code to stop. The code has to stop itself. Returning ctx.Err is the usual rule, and Part 3 adds the cause to it.
+[click] Use a select like this for any wait. A send, a receive, a timer. [click] In a loop, check ctx.Err before each item. Returning ctx.Err is the usual rule. Part 4 adds the cause.
 -->
 
 ---
@@ -555,23 +565,23 @@ go func() {
 <div class="points" style="--n: 1">
 <v-clicks>
 
-- `context.Background()` also drops the cancel, but it loses the trace ID and the log fields
+- `context.Background()` drops the cancel too, but also the trace ID and log fields
 
 </v-clicks>
 </div>
 
 <!--
-[click] The handler starts an audit write in a goroutine and returns. The server cancels r.Context when the handler returns, so the write fails after the user already got a 201. In tests the fake audit store is fast, so the write finishes before the handler returns. In production it fails.
+[click] The handler starts an audit write in a goroutine and returns. The server cancels r.Context when the handler returns. So the write fails after the user got a 201. Tests often miss it, because the fake store is fast.
 
-[click] [click] WithoutCancel, from Go 1.21, keeps the values and drops the stop signal and the deadline. [click] That leaves the work with no time limit, so put your own timeout on top.
+[click] [click] WithoutCancel keeps the values and drops the cancel and the deadline. [click] So the work has no time limit. Give it its own timeout.
 
-[click] Background would drop the cancel too, but it loses the trace ID and every log field. In production I send this work to a pool instead of a plain go statement, so that shutdown can wait for it. My post on supervised fire-and-forget has the details.
+[click] Background drops the cancel too, but you lose the trace ID and log fields. In production I send this work to a pool, so shutdown can wait for it. My post on supervised fire-and-forget has the details.
 -->
 
 ---
 layout: section
-index: "03"
-kicker: Part 3
+index: "04"
+kicker: Part 4
 title: Giving every cancel a cause
 ---
 
@@ -624,13 +634,13 @@ func placeOrder(ctx context.Context, id string) error {
 </div>
 
 <!--
-[click] ctx.Err has only two answers, Canceled or DeadlineExceeded. Wrapping the error with fmt.Errorf tells you where the code was. It doesn't tell you why the context stopped. The code that cancels knows the cause, and since Go 1.20 it can record it. WithCancelCause returns a cancel function that takes an error.
+[click] ctx.Err has only two answers. Wrapping the error tells you where the code was, not why the context ended. The code that cancels knows why. Since Go 1.20, it can say so. WithCancelCause gives you a cancel function that takes an error.
 
-[click] The deferred call sets the cause for the normal return. It counts only if nothing canceled the context first. [click] On the error path, I cancel with a cause that wraps the original error. Both causes also wrap context.Canceled. The next slide shows why.
+[click] The deferred call sets the cause for the normal return. [click] On the error path, I cancel with a cause that wraps the error. Both causes also wrap context.Canceled. The next slide shows why.
 
-[click] context.Cause reads the cause back. [click] Only the first cancel counts, so the error cause stays and the deferred call does nothing. [click] ctx.Err doesn't change. [click] The cause moves down the tree with the cancel, so a goroutine still working under this ctx, or the code that logs its failure, can read it.
+[click] context.Cause reads the cause back. [click] Only the first cancel counts. So the error cause stays, and the deferred call does nothing. [click] ctx.Err doesn't change. [click] The cause moves down the tree with the cancel. Any goroutine still working under this ctx can read it.
 
-A colleague at DoorDash debugged a case where a task ran with the request context. After a successful request, it logged context canceled, and people looked for a client disconnect. With a "completed" cause, the log line says the request had finished.
+A colleague at DoorDash once chased a context canceled after a successful request. People looked for a client disconnect. A "completed" cause would have said the request had finished.
 -->
 
 ---
@@ -675,11 +685,11 @@ ctx, cancel := context.WithTimeoutCause(ctx, 20*time.Millisecond,
 </Code>
 
 <!--
-[click] Timeouts get a cause too. Go 1.21 added WithTimeoutCause: you give the cause when you create the context, and the context uses it when the timer fires. Here the cause is a plain errors.New. [click] So it doesn't wrap DeadlineExceeded.
+[click] Timeouts get causes too. Go 1.21 added WithTimeoutCause. You give the cause up front, and the context uses it when the timer fires. Here the cause is a plain errors.New. [click] So it doesn't wrap DeadlineExceeded.
 
-[click] Since Go 1.23, the HTTP client returns context.Cause instead of the sentinel. So err is the cause. [click] And this check is false. A retry policy or an alert that checks DeadlineExceeded stops matching when you add causes.
+[click] Since Go 1.23, the HTTP client returns the cause instead of DeadlineExceeded. [click] So this check is false. Retry policies and alerts that check DeadlineExceeded stop working.
 
-[click] The fix is to wrap DeadlineExceeded with %w. [click] Then errors.Is matches again, and the message still has the cause. The same goes for Canceled, which is why the causes on the last slide wrap it.
+[click] Wrap DeadlineExceeded with %w. [click] Now errors.Is matches, and the message still has the cause. Same for Canceled. That's why the causes on the last slide wrap it.
 -->
 
 ---
@@ -724,17 +734,15 @@ defer cancelCause(fmt.Errorf("placeOrder: completed: %w", context.Canceled))
 </Code>
 
 <!--
-[click] WithTimeoutCause uses its cause only when the timer fires. The cancel function it returns is a plain CancelFunc, so the normal return, and every error path that calls cancel, gives a plain context canceled. Most requests return normally, so most of the time there is no cause. Sameer Ajmani's proposal for these functions, issue 56661, says this, and it suggests the fix: stack two contexts.
+[click] There's a catch. WithTimeoutCause uses its cause only when the timer fires. Its cancel function takes no cause. So the normal return gives a plain context canceled, and most requests return normally. Sameer Ajmani's proposal, issue 56661, says this. It also gives the fix: stack two contexts.
 
-[click] This way, every path gets a cause.
+[click] Now every path gets a cause.
 
-[click] The outer context takes a cause on the normal return and on each error path. [click] The inner context owns the timer. On timeout, Err still returns DeadlineExceeded, and the gRPC or HTTP client still sends the deadline to the next service.
+[click] The outer context takes a cause on the normal return and on each error path. [click] The inner context owns the timer. On timeout, Err still returns DeadlineExceeded, and the deadline still goes to the next service.
 
-[click] Defers run last in, first out. cancelCause runs first and sets the cause. cancelTimeout then finds the context already canceled and does nothing. If you swap the two defer lines, you lose the cause.
+[click] Defers run in reverse. cancelCause runs first and sets the cause. Swap the two defer lines, and you lose it.
 
-My post also shows a time.AfterFunc version. It is simpler, but the context has no deadline, so the next service gets none. I use the stack.
-
-This is easy to get wrong at every call site. Part 5 puts it in a package.
+My post also shows a time.AfterFunc version. It's simpler, but the next service gets no deadline. This is easy to get wrong at every call site. Part 6 puts it in a package.
 -->
 ---
 layout: default
@@ -788,13 +796,13 @@ if err := row.Scan(&o.ID, &o.Status); err != nil {
 </div>
 
 <!--
-A cause moves down the tree, from a context to its children. An error moves up the call stack. The handler that logs sits above placeOrder, so its own ctx never sees placeOrder's cause. The error has to carry the cause up.
+A cause moves down the tree. An error moves up the call stack. The handler is above placeOrder, so its ctx never sees placeOrder's cause. The error has to carry it up.
 
-[click] Here the store gets an error back from the driver. It says only that ctx ended.
+[click] Here the driver returns an error that only says ctx ended.
 
-[click] [click] If ctx has ended, return its cause instead. [click] The cause wraps DeadlineExceeded, so errors.Is still matches. The style guide says a function usually returns ctx.Err() when its context ends, and callers that check for it keep working. net/http does the same since Go 1.23.
+[click] [click] If ctx has ended, return its cause instead. [click] The cause wraps DeadlineExceeded, so errors.Is still matches. The style guide says a function usually returns ctx.Err when ctx ends. Callers that check for that keep working. net/http does the same since Go 1.23.
 
-[click] Use the same rule in the select from Part 2. [click] If nobody set a cause, Cause returns ctx.Err(), so you lose nothing.
+[click] Do the same in the select from Part 3. [click] If nobody set a cause, Cause returns ctx.Err. So you lose nothing.
 -->
 ---
 layout: default
@@ -842,16 +850,16 @@ if err := placeOrder(r.Context(), r.PathValue("id")); err != nil {
 </div>
 
 <!--
-[click] If every layer logs and also returns, one failure prints many lines. The style guide says the same: if you return an error, let the caller log it. My post on stacked log lines has the details.
+[click] If every layer logs and returns, one failure prints many lines. The style guide says to let the caller log. My post on stacked log lines has more.
 
-[click] Return the error up, and log it once in the handler.
+[click] Return the error up. Log it once, in the handler.
 
-[click] The error carries the cause, so this is the log line from the start of the talk, now with the reason: placeOrder's five-second timeout fired while the store waited on the query. A dashboard can still group these with errors.Is(err, context.DeadlineExceeded).
+[click] The error carries the cause. So here's the log line from the start of the talk, now with the reason. placeOrder's five-second timeout fired during the query. Dashboards can still group these with errors.Is.
 -->
 ---
 layout: section
-index: "04"
-kicker: Part 4
+index: "05"
+kicker: Part 5
 title: Context values
 ---
 
@@ -892,13 +900,13 @@ Use context Values only for request-scoped data that transits processes and APIs
 </div>
 
 <!--
-Values move down the same tree as the cancel signal, so they are easy to use. A value doesn't show in any function signature, so when one is missing, nothing fails at compile time.
+Values move down the same tree. They don't show up in any function signature. So when one is missing, the compiler can't tell you.
 
-[click] My test: if the function can't do its job without the value, the value goes in the signature. A trace ID passes the test, because nothing breaks without one. Auth data is the hard case. http.Handler has a fixed signature, so the middleware puts the user in the request context, and the handler reads it once and passes it on as an argument.
+[click] My test: if the function can't work without it, it goes in the signature. A trace ID passes, because nothing breaks without it. Auth is the tricky case. http.Handler has a fixed signature, so middleware puts the user in the context. The handler reads it once and passes it on as an argument.
 
-[click] A user ID that a query needs fails the test, and so do clients and config. Every value in a context has to be optional, but not every optional value belongs there.
+[click] A user ID that a query needs fails the test. So do clients and config. Every value in a context should be optional. But not every optional value belongs there.
 
-[click] The package doc says the same thing from the other side: values are for request-scoped data, not optional parameters.
+[click] The package doc says the same from the other side.
 -->
 
 ---
@@ -949,16 +957,16 @@ func UserFromContext(ctx context.Context) (User, bool) {
 </Code>
 
 <!--
-[click] Values are found by key, and any package can add a key. Here two packages pick the same string. Value returns the first equal key on the way up, so the second WithValue hides the first. Alice is still in the parent context, but nobody can reach her through this one. staticcheck flags built-in key types with SA1029.
+[click] Any package can add a key. Here two packages pick the same string. Value returns the first match on the way up, so the second WithValue hides the first. staticcheck flags this with SA1029.
 
-[click] An unexported key type fixes this. [click] Only this package can write ctxKey, so no other package can make an equal key.
+[click] An unexported key type fixes it. [click] Only this package can write ctxKey, so no other package can make an equal key.
 
-[click] The package exports a setter and a getter. Callers get a typed User and a bool, and never see the key. Auth middleware calls WithUser, and the handler calls UserFromContext once, then passes the user on as an argument. httptrace, pprof labels, and OpenTelemetry follow the same pattern.
+[click] Export a setter and a getter. Callers get a typed User and a bool, and never see the key. Middleware calls WithUser. The handler calls UserFromContext once and passes the user on. httptrace, pprof labels, and OpenTelemetry work the same way.
 -->
 ---
 layout: section
-index: "05"
-kicker: Part 5
+index: "06"
+kicker: Part 6
 title: Enforcing the rules
 ---
 
@@ -978,9 +986,9 @@ title: Linters can check most of these rules
 </div>
 
 <!--
-Code review catches most of these bugs, but not all of them. A tool can check most of these rules.
+Code review catches most of these bugs. Tools catch more.
 
-[click] lostcancel is on by default in go vet. go test runs only some vet checks, and lostcancel isn't one of them, so run go vet or golangci-lint in CI. [click] [click] staticcheck flags a nil context and a built-in key type. [click] [click] containedctx and contextcheck are in golangci-lint. contextcheck finds the Background in the middle of a chain. It also reports some false positives, so start it on new code. [click] errorlint finds equality checks against errors. Once causes wrap context.Canceled, those checks need errors.Is.
+[click] go vet has lostcancel on by default. go test skips it, so run go vet or golangci-lint in CI. [click] [click] staticcheck flags a nil context and a built-in key type. [click] [click] containedctx and contextcheck are in golangci-lint. contextcheck finds a Background in the middle of a chain. It has some false positives, so start it on new code. [click] errorlint finds == checks on errors. Once causes wrap context.Canceled, you need errors.Is.
 -->
 
 ---
@@ -1036,9 +1044,9 @@ linters:
 <p v-click class="muted" style="max-width:none">At DoorDash, Alex Hornbake built this as <code>xctx</code> for a Go monorepo that many teams share.</p>
 
 <!--
-[click] Stacking contexts and wrapping context.Canceled at every call site is easy to get wrong. So put it in a small package. [click] Its cancel function takes a cause, so callers have to give one. [click] A nil cause still gets a message. [click] It wraps context.Canceled, so errors.Is keeps working. The package's WithTimeout does the stack from Part 3.
+[click] Stacking contexts and wrapping Canceled at every call site is easy to get wrong. So put it in a small package. [click] Its cancel function takes a cause, so callers have to give one. [click] A nil cause still gets a message. [click] It wraps context.Canceled, so errors.Is keeps working. Its WithTimeout does the stack from Part 4.
 
-[click] Then a forbidigo rule fails the build when someone calls the standard constructors, including the Cause versions. xctx itself is the one place with a nolint comment. The context.WithTimeout calls from Part 2 become xctx.WithTimeout. The package still returns a plain context.Context, so every library works as before.
+[click] Then a forbidigo rule fails the build on the standard constructors, including the Cause versions. xctx itself is the one nolint. It still returns a plain context.Context, so every library works.
 
 [click] Alex Hornbake did this at DoorDash in early 2026. After the rollout, every cancel in that repo has a cause.
 -->
@@ -1095,11 +1103,11 @@ title: Some cancels still have no cause
 <img src="/img/gopher-soldering.svg" class="gopher" />
 
 <!--
-Causes help only where somebody sets them.
+Causes help only where someone sets them.
 
-[click] The HTTP server in the current Go source still uses a plain WithCancel for the request context, so a client disconnect gives a plain context canceled. [click] Many libraries don't set causes yet. [click] And a cause never crosses to the next service. gRPC sends the deadline and the cancel signal only, so each service has to set its own causes.
+[click] The HTTP server still cancels the request context without a cause. So a client disconnect gives a plain context canceled. [click] Many libraries don't set causes yet. [click] And a cause never crosses to the next service. gRPC sends only the deadline and the cancel. Each service sets its own causes.
 
-If all of your own cancels have a cause, a context canceled with no cause came from one of these, so start the search there. signal.NotifyContext sets a cause since Go 1.26.
+Once all your own cancels have causes, a plain context canceled came from one of these. Start looking there.
 -->
 
 ---
@@ -1148,7 +1156,7 @@ title: Further reading
 </div>
 
 <!--
-Start with the Go blog posts. My posts go deeper on causes and values. The issues show what people asked for over the years, and how the API changed. The docs, style guides, and linters back the rules in this talk. The slides are on github.com/rednafi/talks.
+Start with the Go blog posts. My posts go deeper on causes, values, and logging. The slides are on github.com/rednafi/talks.
 -->
 
 ---
