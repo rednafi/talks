@@ -146,13 +146,13 @@ title: The log doesn't say why the context stopped
   { arrow: [198, 60, 274, 136], bend: -14, color: 'dim', at: 3 },
   { box: [0, 104, 192, 50], text: &quot;a caller's deadline&quot;, size: 17, at: 4 },
   { arrow: [198, 130, 270, 152], bend: -6, color: 'dim', at: 4 },
-  { box: [0, 174, 192, 50], text: 'the server shuts down', size: 17, at: 5 },
+  { box: [0, 174, 192, 50], text: 'the server shuts down', size: 16, at: 5 },
   { arrow: [198, 198, 270, 170], bend: 6, color: 'dim', at: 5 },
   { box: [0, 244, 192, 50], text: 'code calls cancel()', size: 17, at: 6 },
   { arrow: [198, 268, 276, 186], bend: 14, color: 'dim', at: 6 },
   { arrow: [335, 206, 335, 270], color: 'dont', at: 2 },
   { text: 'context canceled', x: 335, y: 294, size: 19, mono: true, color: 'dont', at: 2 },
-  { text: 'the log says only this', x: 262, y: 356, size: 24, anchor: 'start', color: 'accent', at: 7 },
+  { text: 'no reason given', x: 262, y: 356, size: 24, anchor: 'start', color: 'accent', at: 7 },
   { arrow: [250, 352, 200, 306], bend: 10, color: 'accent', at: 7 },
 ]" />
 
