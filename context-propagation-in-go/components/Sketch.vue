@@ -9,6 +9,7 @@
 //   { diamond: [cx, cy, w, h], text?, color?, tc?, at? }
 //   { arrow: [x1, y1, x2, y2], bend?, color?, dashed?, at? }
 //   { line: [x1, y1, x2, y2], color?, dashed?, at? }
+//   { curve: [[x, y], ...], color?, dashed?, at? }
 //   { text: 'label', x, y, size?, anchor?, color?, mono?, at? }
 //   { cross: [cx, cy, r], color?, at? }
 //   { check: [cx, cy, r], color?, at? }
@@ -65,6 +66,9 @@ const shapes = computed(() => (props.items as any[]).map((it, i) => {
   } else if (it.arrow) {
     const [x1, y1, x2, y2] = it.arrow
     ds = arrow(x1, y1, x2, y2, seed, { ...o, fill: undefined }, it.bend ?? 0)
+    color = it.color ?? 'dim'
+  } else if (it.curve) {
+    ds = [gen.curve(it.curve, o)]
     color = it.color ?? 'dim'
   } else if (it.line) {
     const [x1, y1, x2, y2] = it.line

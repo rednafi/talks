@@ -71,42 +71,50 @@ Writing at **rednafi.com**.
 -->
 ---
 layout: default
+clicks: 7
 title: Overview
 ---
 
-<div class="side-gopher">
-<div class="overview">
-<div class="ov-item" v-click>
-  <div class="ov-num">01</div>
-  <div class="ov-topic">A log line with no cause</div>
-</div>
-<div class="ov-item" v-click>
-  <div class="ov-num">02</div>
-  <div class="ov-topic">Context primer</div>
-</div>
-<div class="ov-item" v-click>
-  <div class="ov-num">03</div>
-  <div class="ov-topic">Passing a context down</div>
-</div>
-<div class="ov-item" v-click>
-  <div class="ov-num">04</div>
-  <div class="ov-topic">Context values</div>
-</div>
-<div class="ov-item" v-click>
-  <div class="ov-num">05</div>
-  <div class="ov-topic">Giving every cancel a cause</div>
-</div>
-<div class="ov-item" v-click>
-  <div class="ov-num">06</div>
-  <div class="ov-topic">Enforcing the rules</div>
-</div>
-<div class="ov-item" v-click>
-  <div class="ov-num">07</div>
-  <div class="ov-topic">Checklist and limits</div>
-</div>
-</div>
-<img src="/img/gopher-rocket.svg" class="gopher" />
-</div>
+<Sketch :w="1000" :h="440" style="margin-top:0.4rem" :items="[
+  { curve: [[596, 40], [603, 32], [610, 40]], color: 'dim', sw: 1.6, roughness: 0.6 },
+  { curve: [[610, 40], [617, 32], [624, 40]], color: 'dim', sw: 1.6, roughness: 0.6 },
+  { curve: [[631, 62], [638, 54], [645, 62]], color: 'dim', sw: 1.6, roughness: 0.6 },
+  { curve: [[645, 62], [652, 54], [659, 62]], color: 'dim', sw: 1.6, roughness: 0.6 },
+  { curve: [[846, 30], [853, 22], [860, 30]], color: 'dim', sw: 1.6, roughness: 0.6 },
+  { curve: [[860, 30], [867, 22], [874, 30]], color: 'dim', sw: 1.6, roughness: 0.6 },
+  { curve: [[30, 360.9], [55, 354.2], [80, 345.9], [105, 342.0], [130, 345.2], [155, 353.3], [180, 360.4], [205, 361.5], [230, 355.9], [255, 347.4], [280, 342.2], [305, 344.0], [330, 351.5], [355, 359.3], [380, 361.9], [405, 357.4], [430, 349.0], [455, 342.8], [480, 343.1], [505, 349.8], [530, 358.1], [555, 362.0], [580, 358.8], [605, 350.7], [630, 343.6], [655, 342.5], [680, 348.1], [705, 356.6], [730, 361.8], [755, 360.0], [780, 352.5], [805, 344.7], [830, 342.1], [855, 346.6], [880, 355.0], [905, 361.2], [930, 360.9], [955, 354.2], [980, 345.9]], color: 'line', roughness: 1.6 },
+  { curve: [[90, 385.5], [115, 393.4], [140, 395.8], [165, 390.5], [190, 382.6], [215, 380.2], [240, 385.5], [265, 393.4], [290, 395.8], [315, 390.5], [340, 382.6], [365, 380.2], [390, 385.5], [415, 393.4], [440, 395.8], [465, 390.5], [490, 382.6], [515, 380.2], [540, 385.5], [565, 393.4], [590, 395.8], [615, 390.5], [640, 382.6], [665, 380.2], [690, 385.5], [715, 393.4], [740, 395.8], [765, 390.5], [790, 382.6], [815, 380.2], [840, 385.5], [865, 393.4], [890, 395.8], [915, 390.5]], color: 'line', roughness: 1.6 },
+  { curve: [[170, 427.1], [195, 419.3], [220, 415.0], [245, 419.8], [270, 427.4], [295, 428.1], [320, 420.9], [345, 415.1], [370, 418.2], [395, 426.2], [420, 428.7], [445, 422.6], [470, 415.7], [495, 416.9], [520, 424.7], [545, 429.0], [570, 424.2], [595, 416.6], [620, 415.9], [645, 423.1], [670, 428.9], [695, 425.8], [720, 417.8], [745, 415.3], [770, 421.4], [795, 428.3], [820, 427.1]], color: 'line', roughness: 1.6 },
+  { curve: [[0, 210.0], [25, 227.5], [50, 240.0], [75, 244.0], [100, 238.1], [125, 224.3], [150, 206.3], [175, 189.4], [200, 178.4], [225, 176.4], [250, 184.1], [275, 199.1], [300, 217.3], [325, 233.4], [350, 242.8], [375, 242.8], [400, 233.4], [425, 217.3], [450, 199.1], [475, 184.1], [500, 176.4], [525, 178.4], [550, 189.4], [575, 206.3], [600, 224.3], [625, 238.1], [650, 244.0], [675, 240.0], [700, 227.5], [725, 210.0], [750, 192.5], [775, 180.0], [800, 176.0], [825, 181.9], [850, 195.7], [875, 213.7], [900, 230.6], [925, 241.6], [950, 243.6], [975, 235.9], [1000, 220.9]], color: 'info', sw: 2.2, roughness: 1.2 },
+  { ellipse: [130, 382, 18, 18], color: 'dim', nobg: true, roughness: 0.8 },
+  { ellipse: [150, 407, 12, 12], color: 'dim', nobg: true, roughness: 0.8 },
+  { ellipse: [452, 397, 16, 16], color: 'dim', nobg: true, roughness: 0.8 },
+  { ellipse: [470, 424, 10, 10], color: 'dim', nobg: true, roughness: 0.8 },
+  { ellipse: [705, 382, 14, 14], color: 'dim', nobg: true, roughness: 0.8 },
+  { ellipse: [725, 404, 10, 10], color: 'dim', nobg: true, roughness: 0.8 },
+  { ellipse: [880, 402, 16, 16], color: 'dim', nobg: true, roughness: 0.8 },
+  { ellipse: [70, 244.0, 70, 70], text: '01', size: 24, color: 'accent', fill: true, fs: 'cross-hatch', at: 1 },
+  { line: [70, 206.0, 70, 166.0], color: 'dim', dashed: true, at: 1 },
+  { text: 'A log line with\nno cause', x: 70, y: 132.0, size: 24, color: 'fg', at: 1 },
+  { ellipse: [210, 176.4, 70, 70], text: '02', size: 24, color: 'accent', fill: true, fs: 'cross-hatch', at: 2 },
+  { line: [210, 214.4, 210, 254.39999999999998], color: 'dim', dashed: true, at: 2 },
+  { text: 'Context primer', x: 210, y: 288.4, size: 24, color: 'fg', at: 2 },
+  { ellipse: [350, 242.8, 70, 70], text: '03', size: 24, color: 'accent', fill: true, fs: 'cross-hatch', at: 3 },
+  { line: [350, 204.8, 350, 164.8], color: 'dim', dashed: true, at: 3 },
+  { text: 'Passing a\ncontext down', x: 350, y: 130.8, size: 24, color: 'fg', at: 3 },
+  { ellipse: [500, 176.4, 70, 70], text: '04', size: 24, color: 'accent', fill: true, fs: 'cross-hatch', at: 4 },
+  { line: [500, 214.4, 500, 254.39999999999998], color: 'dim', dashed: true, at: 4 },
+  { text: 'Context values', x: 500, y: 288.4, size: 24, color: 'fg', at: 4 },
+  { ellipse: [640, 242.8, 70, 70], text: '05', size: 24, color: 'accent', fill: true, fs: 'cross-hatch', at: 5 },
+  { line: [640, 204.8, 640, 164.8], color: 'dim', dashed: true, at: 5 },
+  { text: 'Giving every\ncancel a cause', x: 640, y: 130.8, size: 24, color: 'fg', at: 5 },
+  { ellipse: [780, 178.4, 70, 70], text: '06', size: 24, color: 'accent', fill: true, fs: 'cross-hatch', at: 6 },
+  { line: [780, 216.4, 780, 256.4], color: 'dim', dashed: true, at: 6 },
+  { text: 'Enforcing\nthe rules', x: 780, y: 290.4, size: 24, color: 'fg', at: 6 },
+  { ellipse: [920, 240.0, 70, 70], text: '07', size: 24, color: 'accent', fill: true, fs: 'cross-hatch', at: 7 },
+  { line: [920, 202.0, 920, 162.0], color: 'dim', dashed: true, at: 7 },
+  { text: 'Checklist\nand limits', x: 920, y: 128.0, size: 24, color: 'fg', at: 7 },
+]" />
 
 <!--
 [click] First, the problem: a log line that doesn't say why the context stopped.
