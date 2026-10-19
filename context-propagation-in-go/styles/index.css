@@ -210,8 +210,8 @@ h1.fs-section { max-width: 24ch; }
 .slidev-layout .pull { font-size: 1.2rem !important; line-height: 1.45 !important; }
 .pull cite { font-size: 0.85rem !important; }
 
-/* Quotes inside slides match the quote slides: serif text, the same opening mark. */
-.slidev-layout .pull { font-family: var(--font-serif) !important; font-style: normal !important; font-weight: 500; color: var(--fg) !important; }
+/* Quotes inside slides match the quote slides: title font, the same opening mark. */
+.slidev-layout .pull { font-family: var(--font-display) !important; font-style: normal !important; font-weight: 500; color: var(--fg) !important; }
 .slidev-layout .pull::before { content: "\201C"; display: block; font: 600 3.2rem/0.55 var(--font-serif); color: var(--accent); margin-bottom: 0.35rem; }
 .pull cite { font-family: var(--font-body); color: var(--fg-dim); }
 .slidev-layout .pull { color: var(--fg-dim) !important; }
