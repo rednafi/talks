@@ -11,6 +11,7 @@
   "dependencies": {
     "@slidev/cli": "latest",
     "@slidev/theme-default": "latest",
+    "roughjs": "4.6.6",
     "slidev-theme-tahta": "^0.13.4",
     "vue": "latest"
   },

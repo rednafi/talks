@@ -1,10 +1,12 @@
 <script setup>
-// A small timeline: one bar per row, a vertical marker, and what happens to
-// each bar after the marker.
+// A small hand-drawn timeline: one bar per row, a vertical marker, and what
+// happens to each bar after the marker.
 //   after="waste": the part past the marker shows as wasted work (on click).
 //   after="stop":  bars end at the marker; the part they skip shows as an outline.
 //   after="clip":  like stop, used for a deadline that a child can't extend.
 import { computed } from 'vue'
+import { useSlideContext } from '@slidev/client'
+import { gen, base, toPaths, arrow } from '../lib/rough'
 
 const props = defineProps({
   rows: { type: Array, required: true }, // [{ label, from, to }]
@@ -14,62 +16,97 @@ const props = defineProps({
   afterLabel: { type: String, default: '' },
   ticks: { type: Array, default: () => [] }, // [{ at, label }]
   click: { type: Boolean, default: true },
+  notes: { type: Array, default: () => [] }, // [{ row, at, text }] handwritten, below the axis
 })
-const pct = (v) => `${(v / props.total) * 100}%`
-const parts = computed(() => props.rows.map((r) => {
+const { $clicks } = useSlideContext()
+const tailOn = computed(() => !props.click || $clicks.value >= 1)
+
+const W = 1000, LAB = 190, TRACK = W - LAB - 10, ROW = 46, BAR = 26, TOP = 34
+const x = (v) => LAB + (v / props.total) * TRACK
+const NOTE = computed(() => (props.notes.length ? 70 : 0))
+// A waste key sits under the axis. A clip or stop label goes inside the
+// outlined tail instead, so it takes no extra room.
+const keyed = computed(() => !!props.afterLabel && props.after === 'waste')
+const H = computed(() => TOP + props.rows.length * ROW + 34 + (keyed.value ? 40 : 0) + NOTE.value)
+
+const drawn = computed(() => props.rows.map((r, i) => {
+  const y = TOP + i * ROW
   const cut = Math.min(Math.max(props.marker.at, r.from), r.to)
-  return {
-    ...r,
-    head: { left: pct(r.from), width: pct(cut - r.from) },
-    tail: r.to > cut ? { left: pct(cut), width: pct(r.to - cut) } : null,
+  const head = cut > r.from
+    ? toPaths([gen.rectangle(x(r.from), y, x(cut) - x(r.from), BAR, base(i * 11 + 1, { fill: 'currentColor', fillStyle: 'solid', roughness: 0.9 }))])
+    : []
+  let tail = []
+  if (r.to > cut) {
+    const w = x(r.to) - x(cut)
+    tail = props.after === 'waste'
+      ? toPaths([gen.rectangle(x(cut), y, w, BAR, base(i * 11 + 5, { fill: 'currentColor', roughness: 1 }))])
+      : toPaths([gen.rectangle(x(cut), y, w, BAR, base(i * 11 + 5, { strokeLineDash: [7, 6], roughness: 1 }))])
   }
+  return { label: r.label, y, head, tail }
 }))
+
+const axisY = computed(() => TOP + props.rows.length * ROW + 4)
+const axis = computed(() => toPaths([gen.line(LAB, axisY.value, W - 10, axisY.value, base(91, { roughness: 0.7, strokeWidth: 1.2 }))]))
+const noteY = computed(() => axisY.value + 34 + (keyed.value ? 40 : 0) + 34)
+const inTail = computed(() => {
+  if (!props.afterLabel || keyed.value)
+    return null
+  const i = props.rows.length - 1, r = props.rows[i]
+  const cut = Math.min(Math.max(props.marker.at, r.from), r.to)
+  return r.to > cut ? { x: (x(cut) + x(r.to)) / 2, y: TOP + i * ROW + BAR / 2 } : null
+})
+const noted = computed(() => props.notes.map((n, i) => ({
+  ...n,
+  x: x(n.at),
+  paths: toPaths(arrow(x(n.at) + 6, noteY.value - 22, x(n.at), TOP + n.row * ROW + BAR + 4, i * 31 + 9, { strokeWidth: 1.5, head: 10 }, 18)),
+})))
+const mark = computed(() => toPaths([gen.line(x(props.marker.at), 18, x(props.marker.at), axisY.value, base(77, { strokeWidth: 2.2, roughness: 1.2 }))]))
+const swatch = computed(() => toPaths([gen.rectangle(0, axisY.value + 44, 34, 18, base(55, props.after === 'waste' ? { fill: 'currentColor' } : { strokeLineDash: [6, 5] }))]))
 </script>
 
 <template>
-  <div class="bars" :class="`after-${after}`">
-    <div class="bars-grid">
-      <template v-for="(r, i) in parts" :key="i">
-        <div class="bars-label">{{ r.label }}</div>
-        <div class="bars-track">
-          <div class="bar head" :style="r.head" />
-          <div v-if="r.tail && click" v-click="1" class="bar tail" :style="r.tail" />
-          <div v-else-if="r.tail" class="bar tail" :style="r.tail" />
-        </div>
-      </template>
-      <div />
-      <div class="bars-axis">
-        <span v-for="t in ticks.filter(t => t.at !== marker.at)" :key="t.at" class="tick" :style="{ left: pct(t.at), transform: t.at >= total ? 'translateX(-100%)' : (t.at <= 0 ? 'none' : 'translateX(-50%)') }">{{ t.label }}</span>
-      </div>
-    </div>
-    <div class="bars-overlay">
-      <div class="bars-mark" :style="{ left: pct(marker.at) }">
-        <span>{{ marker.label }}</span>
-      </div>
-    </div>
-    <div v-if="afterLabel && click" v-click="1" class="bars-key"><span class="swatch" /> {{ afterLabel }}</div>
-    <div v-else-if="afterLabel" class="bars-key"><span class="swatch" /> {{ afterLabel }}</div>
-  </div>
+  <svg class="bars" :class="`after-${after}`" :viewBox="`0 0 ${W} ${H}`" xmlns="http://www.w3.org/2000/svg">
+    <g v-for="(r, i) in drawn" :key="i">
+      <text class="lab" :x="0" :y="r.y + BAR / 2" dominant-baseline="central">{{ r.label }}</text>
+      <g class="head"><path v-for="(p, j) in r.head" :key="j" :d="p.d" :fill="p.solid ? 'currentColor' : 'none'" stroke="currentColor" :stroke-width="p.sw" /></g>
+      <g class="tail" :class="{ on: tailOn }"><path v-for="(p, j) in r.tail" :key="j" :d="p.d" fill="none" stroke="currentColor" :stroke-width="p.sw" :class="{ hach: p.hach }" /></g>
+    </g>
+    <g class="axis"><path v-for="(p, j) in axis" :key="j" :d="p.d" fill="none" stroke="currentColor" :stroke-width="p.sw" /></g>
+    <text v-for="t in ticks.filter(t => t.at !== marker.at)" :key="t.at" class="tick" :x="x(t.at)" :y="axisY + 20" :text-anchor="t.at >= total ? 'end' : (t.at <= 0 ? 'start' : 'middle')">{{ t.label }}</text>
+    <g class="mk"><path v-for="(p, j) in mark" :key="j" :d="p.d" fill="none" stroke="currentColor" :stroke-width="p.sw" /></g>
+    <text class="mk-label" :x="x(marker.at) + 10" y="12">{{ marker.label }}</text>
+    <text v-if="inTail" class="tail in-tail" :class="{ on: tailOn }" :x="inTail.x" :y="inTail.y" text-anchor="middle" dominant-baseline="central">{{ afterLabel }}</text>
+    <g v-if="keyed" class="tail key" :class="{ on: tailOn }">
+      <path v-for="(p, j) in swatch" :key="j" :d="p.d" fill="none" stroke="currentColor" :stroke-width="p.sw" :class="{ hach: p.hach }" />
+      <text class="key-label" x="48" :y="axisY + 54" dominant-baseline="central">{{ afterLabel }}</text>
+    </g>
+    <g v-for="(n, i) in noted" :key="'n' + i" class="note">
+      <path v-for="(p, j) in n.paths" :key="j" :d="p.d" fill="none" stroke="currentColor" :stroke-width="p.sw" />
+      <text :x="n.x + 6" :y="noteY" text-anchor="middle">{{ n.text }}</text>
+    </g>
+  </svg>
 </template>
 
 <style scoped>
-.bars { position: relative; width: 100%; --lab: 11.5rem; margin-top: 2.2rem; }
-.bars-grid { display: grid; grid-template-columns: var(--lab) 1fr; row-gap: 0.9rem; align-items: center; }
-.bars-label { font-family: var(--font-mono); font-size: 0.9rem; color: var(--fg); padding-right: 1rem; }
-.bars-track { position: relative; height: 1.6rem; }
-.bar { position: absolute; top: 0; bottom: 0; border-radius: 4px; }
-.bar.head { background: color-mix(in oklab, var(--accent) 75%, transparent); }
-.after-waste .bar.tail {
-  background: repeating-linear-gradient(-45deg, color-mix(in oklab, var(--bad) 55%, transparent) 0 6px, transparent 6px 11px);
-  border: 1px solid color-mix(in oklab, var(--bad) 70%, transparent);
-}
-.after-stop .bar.tail, .after-clip .bar.tail { border: 1.5px dashed var(--fg-dim); background: none; opacity: 0.7; }
-.bars-axis { position: relative; height: 1.2rem; border-top: 1px solid var(--line); margin-top: 0.2rem; }
-.tick { position: absolute; top: 0.35rem; transform: translateX(-50%); font-family: var(--font-mono); font-size: 0.72rem; color: var(--fg-dim); }
-.bars-overlay { position: absolute; inset: -1.9rem 0 1.4rem var(--lab); pointer-events: none; }
-.bars-mark { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px solid var(--cat-2); }
-.bars-mark span { position: absolute; top: 0; left: 0.5rem; white-space: nowrap; font: 600 0.85rem/1 var(--font-body); color: var(--cat-2); }
-.bars-key { margin-top: 1.4rem; font-size: 0.95rem; color: var(--fg-dim); display: flex; align-items: center; gap: 0.6rem; }
-.after-waste .swatch { width: 1.6rem; height: 0.9rem; border-radius: 3px; background: repeating-linear-gradient(-45deg, color-mix(in oklab, var(--bad) 55%, transparent) 0 6px, transparent 6px 11px); border: 1px solid color-mix(in oklab, var(--bad) 70%, transparent); }
-.after-stop .swatch, .after-clip .swatch { width: 1.6rem; height: 0.9rem; border-radius: 3px; border: 1.5px dashed var(--fg-dim); opacity: 0.7; }
+.bars { display: block; width: 100%; height: auto; margin-top: 1.4rem; overflow: visible; }
+.bars path { stroke-linecap: round; stroke-linejoin: round; }
+.lab { font: 500 17px var(--font-mono); fill: var(--fg); }
+.head { color: color-mix(in oklab, var(--accent) 70%, transparent); }
+.tail { opacity: 0; transition: opacity 0.4s ease; }
+.tail.on { opacity: 1; }
+.after-waste .tail { color: #ff9e64; }
+.after-stop .tail, .after-clip .tail { color: var(--fg-dim); }
+.tail path.hach { opacity: 0.6; }
+.axis { color: var(--line); }
+.tick { font: 15px var(--font-mono); fill: var(--fg-dim); }
+.mk { color: var(--cat-2); }
+.mk-label { font: 20px 'Virgil', var(--font-body); fill: var(--cat-2); }
+.key .key-label { font: 19px 'Virgil', var(--font-body); fill: var(--fg-dim); }
+.key { color: inherit; }
+.in-tail { font: 19px 'Virgil', var(--font-body); fill: var(--fg-dim); }
+.note { color: #ff9e64; }
+.note path { opacity: 0.8; }
+.note text { font: 20px 'Virgil', var(--font-body); fill: #ff9e64; }
+.after-waste .key { color: #ff9e64; }
+.after-stop .key, .after-clip .key { color: var(--fg-dim); }
 </style>

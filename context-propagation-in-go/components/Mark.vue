@@ -3,7 +3,8 @@
 //   <Mark :line="3">first cancel wins</Mark>
 // `line` is 1-based inside the closest code block before the mark.
 // `block` (1-based) picks another block inside the same <Code>.
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { arrow, toPaths } from '../lib/rough'
 
 const props = defineProps({
   line: { type: [Number, String], required: true },
@@ -25,6 +26,19 @@ function targetPre(el, body) {
       last = p
   }
   return last ?? pres[pres.length - 1]
+}
+
+const labelEl = ref(null)
+let cv
+function labelWidth() {
+  const el = labelEl.value
+  if (!el)
+    return 0
+  cv ??= document.createElement('canvas')
+  const g = cv.getContext('2d')
+  const cs = getComputedStyle(el)
+  g.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+  return g.measureText(el.textContent.trim()).width
 }
 
 function place() {
@@ -51,16 +65,34 @@ function place() {
   const codeRight = (p.right - b.left) / s
   const boxRight = (x.right - b.left) / s
   const top = (r.top - b.top) / s + r.height / s / 2
+  // Labels line up in one column just past the longest code line, so they
+  // never sit on top of the code. The arrow fills the gap to that column.
+  let codeEnd = 0
+  for (const l of body.querySelectorAll('pre .line'))
+    codeEnd = Math.max(codeEnd, (l.getBoundingClientRect().right - b.left) / s)
+  // If the label won't fit on one line in that column, pull the column left
+  // until it does, but keep at least a short arrow.
   const start = lineEnd + 10
-  const labelX = Math.max(codeRight + 14, start + 28)
+  const need = labelWidth() + 4
+  const labelX = Math.max(start + 46, Math.min(codeEnd + 48, boxRight - need))
+  const arrowW = labelX - start - 6
   pos.value = {
     left: start,
     top,
-    arrow: labelX - start - 6,
-    label: Math.max(80, boxRight - labelX),
+    arrow: arrowW,
+    label: Math.max(120, boxRight - labelX),
     ready: true,
   }
 }
+
+// A hand-drawn arrow that points left, at the code line.
+const seed = Math.round(Number(props.line) * 13 + Number(props.block) * 7)
+const paths = computed(() => {
+  const w = pos.value.arrow
+  if (w < 8)
+    return []
+  return toPaths(arrow(w, 8, 2, 8, seed, { strokeWidth: 1.6, roughness: 0.9, head: 9 }, 1.5))
+})
 
 function schedule() {
   cancelAnimationFrame(raf)
@@ -89,10 +121,9 @@ onBeforeUnmount(() => {
     ref="root" class="mark"
     :style="{ left: `${pos.left}px`, top: `${pos.top}px`, visibility: pos.ready ? undefined : 'hidden' }"
   >
-    <svg class="mark-arrow" :width="pos.arrow" height="14" :viewBox="`0 0 ${pos.arrow} 14`">
-      <line x1="2" y1="7" :x2="pos.arrow" y2="7" />
-      <polyline points="9,1.5 2,7 9,12.5" />
+    <svg class="mark-arrow" :width="pos.arrow" height="16" :viewBox="`0 0 ${pos.arrow} 16`">
+      <path v-for="(p, i) in paths" :key="i" :d="p.d" fill="none" stroke="currentColor" :stroke-width="p.sw" />
     </svg>
-    <span class="mark-label" :style="{ width: `${pos.label}px` }"><slot /></span>
+    <span ref="labelEl" class="mark-label" :style="{ width: `${pos.label}px` }"><slot /></span>
   </div>
 </template>
