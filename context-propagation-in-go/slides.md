@@ -248,7 +248,7 @@ type Context interface {
 <!--
 [click] The package doc says what a context is for. Note "between processes". We'll get there.
 
-[click] This is the whole interface. [click] Deadline says when to give up. [click] Done is a channel. It closes when the work should stop. Nothing stops on its own. Code has to watch Done, or pass ctx to code that does, like the HTTP client or database/sql. [click] Err says how the context ended. It has only two answers. The next slide shows where they come from. [click] Value carries request data, like a trace ID.
+[click] This is the whole interface. [click] Deadline says when to give up. [click] Done is a channel. It closes when the work should stop. [click] Err says how the context ended. It has only two answers. The next slide shows where they come from. [click] Value carries request data, like a trace ID.
 
 [click] There's no Cancel method. Only the code that made the context can cancel it, so a child can't cancel its parent. [click] A context is read-only. You change it by wrapping it in a child.
 -->
@@ -361,6 +361,104 @@ Inside a process, your code passes ctx from the handler to the service to the cl
 Between processes, the gRPC client and OpenTelemetry read the deadline and the trace from ctx. They write them into headers. The server reads the headers and builds a new context.
 
 The second part needs the first. If placeOrder starts from context.Background, the payments client has no deadline and no trace to send.
+-->
+
+---
+layout: default
+kicker: Context primer
+title: A cancel stops only the code that checks the context
+---
+
+<Code gutter="15rem">
+
+<div v-click>
+
+```go
+// Don't: ignore ctx in the loop.
+func resizeAll(ctx context.Context, images []Image) error {
+    for _, img := range images {
+        resize(img) // 200ms each
+    }
+    return nil
+}
+```
+
+</div>
+
+<Mark :line="4" v-click>keeps going after a cancel</Mark>
+
+<div v-click>
+
+```go
+
+// Do: check ctx before each image.
+func resizeAll(ctx context.Context, images []Image) error {
+    for _, img := range images {
+        if err := ctx.Err(); err != nil {
+            return err
+        }
+        resize(img)
+    }
+    return nil
+}
+```
+
+</div>
+
+<Mark :block="2" :line="5" v-click>stops before the next image</Mark>
+
+</Code>
+
+<div class="points" style="--n: 2">
+<v-clicks>
+
+- `cancel()` only closes the `Done` channel
+- Make every loop and every wait check `ctx`, or pass it to code that checks it
+
+</v-clicks>
+</div>
+
+<!--
+[click] The context only tells code to stop. The code has to stop itself. This function takes ctx but never looks at it. [click] If the client hangs up after the first image, the loop resizes all the others anyway.
+
+[click] The fix is one check per item. [click] Once ctx is canceled, the loop returns before the next image.
+
+[click] A cancel only closes a channel. [click] So every loop and every wait checks ctx, or passes it to code that does. The HTTP client, database/sql, and exec.CommandContext all check it for you.
+-->
+
+---
+layout: default
+kicker: Context primer
+title: Most context bugs I see are in these groups
+---
+
+<div class="three" style="grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 1.8rem">
+<div class="fail" v-click>
+  <div class="fail-num">1</div>
+  <div class="fail-title">Work that runs too long</div>
+  <div class="fail-why">The client left, but the query continues.</div>
+</div>
+<div class="fail" v-click>
+  <div class="fail-num">2</div>
+  <div class="fail-title">Work that stops too early</div>
+  <div class="fail-why">The audit write fails when the handler returns.</div>
+</div>
+<div class="fail" v-click>
+  <div class="fail-num">3</div>
+  <div class="fail-title">A cancel with no cause</div>
+  <div class="fail-why">The log says only context canceled.</div>
+</div>
+<div class="fail" v-click>
+  <div class="fail-num">4</div>
+  <div class="fail-title">A value that is wrong or hidden</div>
+  <div class="fail-why">Another package's key hides the user.</div>
+</div>
+</div>
+
+<!--
+These are the bugs I see most. Each part after this fixes one or more of them.
+
+[click] Work runs too long. A layer didn't pass ctx, or never checks it. [click] Work stops too early. Something that has to outlive the request got the request's context. [click] A cancel with no cause. That's the log line from the start. [click] A value that's wrong or hidden. Two packages use the same key, or a required input hides in the context. The compiler can't catch either.
 -->
 
 ---
@@ -506,11 +604,10 @@ case <-ctx.Done():
 
 </Code>
 
-<div class="points" style="--n: 2">
+<div class="points" style="--n: 1">
 <v-clicks>
 
 - Every blocking wait needs a `ctx.Done()` case, including channel sends
-- In a loop, check `ctx.Err()` before each item
 
 </v-clicks>
 </div>
@@ -520,7 +617,7 @@ case <-ctx.Done():
 
 [click] A select waits on the timer and on Done. [click] A cancel ends the wait.
 
-[click] Use a select like this for any wait. A send, a receive, a timer. [click] In a loop, check ctx.Err before each item. Returning ctx.Err is the usual rule. Part 4 adds the cause.
+[click] Use a select like this for any wait. A send, a receive, a timer. Returning ctx.Err is the usual rule. Part 4 adds the cause.
 -->
 
 ---
@@ -578,6 +675,62 @@ go func() {
 [click] Background drops the cancel too, but you lose the trace ID and log fields. In production I send this work to a pool, so shutdown can wait for it. My post on supervised fire-and-forget has the details.
 -->
 
+---
+layout: default
+kicker: Passing a context down
+title: A child context can't extend its parent's deadline
+---
+
+<Code gutter="16rem">
+
+<div v-click>
+
+```go
+parent, cancelParent := context.WithTimeout(ctx, 2*time.Second)
+defer cancelParent()
+
+child, cancelChild := context.WithTimeout(parent, 10*time.Second)
+defer cancelChild()
+
+deadline, _ := child.Deadline()
+```
+
+</div>
+
+<Mark :line="1" v-click>the parent gets 2s</Mark>
+<Mark :line="4" v-click>the child asks for 10s</Mark>
+<Mark :line="7" v-click>2s from now</Mark>
+
+</Code>
+
+<div v-click>
+
+<Bars
+  :total="10000"
+  :click="false"
+  :marker="{ at: 2000, label: 'parent deadline' }"
+  after="clip"
+  after-label="The time the child asked for, cut at 2s"
+  :ticks="[{ at: 0, label: '0' }, { at: 2000, label: '2s' }, { at: 5000, label: '5s' }, { at: 10000, label: '10s' }]"
+  :rows="[
+    { label: 'parent (2s)', from: 0, to: 2000 },
+    { label: 'child (10s)', from: 0, to: 10000 },
+  ]"
+/>
+
+</div>
+
+<p v-click class="take">Set the deadline once, in the handler. Give a lower layer its own timeout only when it needs less time.</p>
+
+<!--
+[click] Here's a parent and a child. [click] The parent gets two seconds. [click] The child asks for ten.
+
+[click] The child still ends two seconds from now. A child's deadline is the earlier of its own and its parent's. So a deadline only gets shorter down the tree.
+
+[click] The dashed part is time the child asked for and never gets.
+
+[click] So set the deadline once, where the request starts. Give an inner call a shorter timeout when it needs one, like a cache lookup that should give up fast.
+-->
 ---
 layout: section
 index: "04"
@@ -963,6 +1116,56 @@ func UserFromContext(ctx context.Context) (User, bool) {
 
 [click] Export a setter and a getter. Callers get a typed User and a bool, and never see the key. Middleware calls WithUser. The handler calls UserFromContext once and passes the user on. httptrace, pprof labels, and OpenTelemetry work the same way.
 -->
+---
+layout: default
+kicker: Context values
+title: Don't hide a dependency in a context
+---
+
+<Code gutter="15rem">
+
+<div v-click>
+
+```go
+// Don't: find the transaction in the context.
+func (s *OrderStore) Create(ctx context.Context, o Order) (int64, error) {
+    var db DBTX = s.db
+    if tx, ok := TxFromContext(ctx); ok {
+        db = tx
+    }
+    // ...
+}
+```
+
+</div>
+
+<Mark :line="4" v-click>false if a caller forgets WithTx</Mark>
+<Mark :line="3" v-click>then the store writes outside the transaction</Mark>
+
+<div v-click>
+
+```go
+
+// Do: pass the transaction as an argument.
+func (s *OrderStore) Create(ctx context.Context, tx DBTX, o Order) (int64, error) {
+    // ...
+}
+```
+
+</div>
+
+<Mark :block="2" :line="3" v-click>callers have to pass it</Mark>
+
+</Code>
+
+<!--
+[click] A typed getter stops key collisions. It can't stop a required value from hiding in a context. A reader suggested this on my repository post: put the transaction in the context, and let the store find it.
+
+[click] If a caller forgets WithTx, ok is false. [click] Then the store falls back to the pool. Nothing fails, and the writes are no longer atomic.
+
+[click] Pass the transaction as an argument. [click] Now it's in the signature, and the compiler checks every caller.
+-->
+
 ---
 layout: section
 index: "06"
