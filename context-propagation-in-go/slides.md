@@ -1407,74 +1407,33 @@ linters:
 ---
 layout: default
 kicker: Wrap-up
-clicks: 8
 title: The checklist I use in code review
 ---
 
-<Sketch :w="1000" :h="430" style="margin-top:0.1rem" :items="[
-  { box: [6, 6, 988, 418], color: 'line', nobg: true, roughness: 2.2, sw: 1.4 },
-  { line: [950, 30, 950, 86], color: 'dim', sw: 1.3 },
-  { line: [922, 58, 978, 58], color: 'dim', sw: 1.3 },
-  { diamond: [950, 58, 16, 38], color: 'dim', nobg: true, sw: 1.3 },
-  { text: 'N', x: 950, y: 19, size: 15, color: 'dim' },
-        { curve: [[385, 404], [400, 387], [415, 404]], color: 'line', sw: 1.5, roughness: 0.8 },
-  { curve: [[415, 414], [430, 397], [445, 414]], color: 'line', sw: 1.5, roughness: 0.8 },
-  { curve: [[935, 404], [950, 387], [965, 404]], color: 'line', sw: 1.5, roughness: 0.8 },
-  { ellipse: [650, 215, 18, 22], color: 'line', nobg: true, sw: 1.3 },
-  { line: [650, 226, 650, 237], color: 'line', sw: 1.3 },
-  { ellipse: [672, 228, 18, 22], color: 'line', nobg: true, sw: 1.3 },
-  { line: [672, 239, 672, 250], color: 'line', sw: 1.3 },
-  { ellipse: [300, 30, 18, 22], color: 'line', nobg: true, sw: 1.3 },
-  { line: [300, 41, 300, 52], color: 'line', sw: 1.3 },
-  { ellipse: [322, 40, 18, 22], color: 'line', nobg: true, sw: 1.3 },
-  { line: [322, 51, 322, 62], color: 'line', sw: 1.3 },
-  { curve: [[105, 82], [130, 78], [220, 84], [350, 88], [460, 80], [600, 86], [700, 80], [875, 96], [915, 190], [890, 270], [840, 318], [700, 326], [560, 320], [400, 328], [250, 320], [118, 324]], color: 'info', dashed: true, sw: 2.2, roughness: 1.3 },
-  { curve: [[515, 92], [565, 140], [550, 205], [478, 236]], color: 'dim', dashed: true, sw: 1.7, roughness: 1.1 },
-  { ellipse: [60, 80, 96, 48], text: 'request', size: 18, color: 'dim' },
-  { box: [150, 58, 150, 46], text: 'middleware', size: 19 },
-  { box: [395, 58, 120, 46], text: 'handler', size: 19 },
-  { box: [690, 58, 155, 46], text: 'placeOrder', size: 19 },
-  { box: [775, 300, 145, 46], text: 'retry wait', size: 19 },
-  { box: [505, 298, 115, 46], text: 'charge', size: 19 },
-  { box: [330, 218, 145, 44], text: 'audit write', size: 19, dashed: true },
-  { cross: [100, 324, 15], color: 'accent', sw: 3 },
-  { text: 'log line', x: 100, y: 362, size: 17, color: 'dim' },
-  { flag: [165, 58], text: '4', at: 1 },
-  { text: 'only optional\nrequest data,\nwith a hidden key', x: 225, y: 158, size: 19, color: 'fg', at: 1 },
-  { flag: [410, 58], text: '1', at: 2 },
-  { text: 'pass ctx down,\nnever store it', x: 455, y: 146, size: 19, color: 'fg', at: 2 },
-  { flag: [345, 218], text: '3', at: 3 },
-  { text: 'WithoutCancel and\nits own timeout', x: 318, y: 240, anchor: 'end', size: 19, color: 'fg', at: 3 },
-  { flag: [705, 58], text: '5', at: 4 },
-  { text: 'every cancel gets a cause', x: 767, y: 136, size: 19, color: 'fg', at: 4 },
-  { flag: [780, 58], text: '6', at: 5 },
-  { text: 'stack WithCancelCause\non the timeout', x: 767, y: 186, size: 19, color: 'fg', at: 5 },
-  { flag: [790, 300], text: '2', at: 6 },
-  { text: 'check ctx in every\nloop and every wait', x: 848, y: 386, size: 19, color: 'fg', at: 6 },
-  { flag: [520, 298], text: '7', at: 7 },
-  { text: 'each cause wraps Canceled\nor DeadlineExceeded', x: 562, y: 386, size: 19, color: 'fg', at: 7 },
-  { flag: [115, 324], text: '8', at: 8 },
-  { text: 'return Cause,\nlog once, here', x: 165, y: 386, anchor: 'start', size: 19, color: 'fg', at: 8 },
-]" />
+<div class="side-gopher">
+<div class="checklist">
+
+<v-clicks>
+
+1. Pass `ctx` to each call, and don't store it in a struct
+2. Check `ctx` in every loop and every blocking wait
+3. Give background work `WithoutCancel` and a timeout
+4. Put only optional request data in a context, and hide the key
+5. Give every cancel a cause, including the normal return
+6. Stack `WithCancelCause` on a timeout to cover every path
+7. Wrap `Canceled` or `DeadlineExceeded` in every cause
+8. Return `context.Cause(ctx)`, and log once in the handler
+
+</v-clicks>
+
+</div>
+<img src="/img/gopher-knight.svg" class="gopher" />
+</div>
 
 <!--
-This is the checklist as a map of one request. Each flag marks the place where a rule applies. The numbers follow the order of the talk.
+The checklist follows the order of the talk.
 
-[click] Rule 4. The middleware puts the trace ID in the context. Put only optional request data there, and hide the key.
-
-[click] Rule 1. The handler passes ctx to each call. It never stores ctx in a struct.
-
-[click] Rule 3. The audit write runs after the handler returns. Give it WithoutCancel and its own timeout.
-
-[click] Rule 5. placeOrder gives every cancel a cause, the normal return too.
-
-[click] Rule 6. It stacks WithCancelCause on the timeout, so every path has a cause.
-
-[click] Rule 2. The retry wait checks ctx, so it stops when ctx is canceled.
-
-[click] Rule 7. charge returns a cause that wraps Canceled or DeadlineExceeded, so errors.Is still works.
-
-[click] Rule 8. The error comes back up with context.Cause, and the handler logs it once. The linters and xctx check most of these rules on every pull request.
+[click] [click] [click] These keep work from running too long or stopping too early. [click] This keeps values from turning into hidden parameters. [click] [click] [click] [click] These make context canceled say why. The linters and xctx check most of the list on every pull request.
 -->
 ---
 layout: two-cols
