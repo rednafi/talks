@@ -155,7 +155,7 @@ title: The log doesn't say why the context stopped
   { text: 'Any of these can stop it', x: 0, y: 8, anchor: 'start', size: 19, color: 'dim', at: 2 },
   { box: [0, 34, 192, 50], text: 'the client hangs up', size: 17, at: 3 },
   { arrow: [198, 60, 274, 136], bend: -14, color: 'dim', at: 3 },
-  { box: [0, 104, 192, 50], text: &quot;a caller's deadline&quot;, size: 17, at: 4 },
+  { box: [0, 104, 192, 50], text: 'the caller cancels', size: 17, at: 4 },
   { arrow: [198, 130, 270, 152], bend: -6, color: 'dim', at: 4 },
   { box: [0, 174, 192, 50], text: 'the server shuts down', size: 16, at: 5 },
   { arrow: [198, 198, 270, 170], bend: 6, color: 'dim', at: 5 },
@@ -172,7 +172,7 @@ title: The log doesn't say why the context stopped
 <!--
 [click] I see logs like this in most Go services that call other services.
 
-[click] Any of these can stop the context. [click] The client went away. [click] A caller's deadline passed. [click] The server started to shut down. This stops a request only if you connect the signal context to the server. BaseContext does this. [click] Or some code called cancel.
+[click] Any of these can stop the context. [click] The client went away. [click] The caller canceled its call, and gRPC sent the cancel to this service. [click] The server started to shut down. This stops a request only if you connect the signal context to the server. BaseContext does this. [click] Or some code called cancel.
 
 [click] The log doesn't say which one. The cancel often started in a library or a service I've never read.
 -->
@@ -1028,7 +1028,7 @@ errors.Is(err, context.DeadlineExceeded)
 </div>
 
 <Mark :line="3" v-click>errors.New doesn't wrap DeadlineExceeded</Mark>
-<Mark :line="6" v-click>since Go 1.23, err is the cause</Mark>
+<Mark :line="6" v-click>since Go 1.23, err wraps the cause</Mark>
 <Mark :line="7" v-click>false</Mark>
 
 <div v-click>
@@ -1049,7 +1049,7 @@ ctx, cancel := context.WithTimeoutCause(ctx, 20*time.Millisecond,
 <!--
 [click] Timeouts get causes too. Go 1.21 added WithTimeoutCause. You give the cause up front, and the context uses it when the timer fires. Here the cause is a plain errors.New. [click] So it doesn't wrap DeadlineExceeded.
 
-[click] Since Go 1.23, the HTTP client returns the cause instead of DeadlineExceeded. [click] So this check is false. Retry policies and alerts that check DeadlineExceeded stop working.
+[click] Since Go 1.23, the HTTP client returns an error that wraps the cause. Before, the error wrapped DeadlineExceeded. [click] So this check is false. Retry policies and alerts that check DeadlineExceeded stop working.
 
 [click] Wrap DeadlineExceeded with %w. [click] Now errors.Is matches, and the message still has the cause. Same for Canceled. That's why the causes on the last slide wrap it.
 
@@ -1203,7 +1203,9 @@ Returning ctx.Err is the usual rule, and it's fine. This is a drop-in swap.
 
 [click] Callers that check errors.Is see the same answer, because the cause wraps DeadlineExceeded. That's why we wrap. Logs get the reason.
 
-[click] If nobody set a cause, you get exactly ctx.Err. So the swap never loses anything. Add context with fmt.Errorf and %w as you normally would.
+[click] If nobody set a cause, you get exactly ctx.Err. Add context with fmt.Errorf and %w as you normally would.
+
+A cause from other code can break errors.Is. errgroup.WithContext cancels with the first error as the cause, and that error doesn't wrap Canceled. So errors.Is(err, context.Canceled) changes from true to false. If callers check for Canceled there, return ctx.Err, or wrap both errors with %w.
 
 The style guide says to document a function that returns an error other than ctx.Err. One line in the doc comment is enough. The same goes for a library call that fails after ctx ends. database/sql returns ctx.Err, so return the cause instead. net/http already does this since Go 1.23.
 -->
@@ -1286,7 +1288,7 @@ title: Enforcing the rules
 layout: default
 kicker: Enforcing the rules
 clicks: 6
-title: Linters can check most of these rules
+title: Linters can check some of these rules
 ---
 
 <Sketch :w="1000" :h="350" style="margin-top:0.6rem" :items="[
@@ -1447,7 +1449,7 @@ title: The checklist I use in code review
 <!--
 The checklist follows the order of the talk.
 
-[click] [click] [click] These keep work from running too long or stopping too early. [click] This keeps values from turning into hidden parameters. [click] [click] [click] [click] These make context canceled say why. The linters and xctx check most of the list on every pull request.
+[click] [click] [click] These keep work from running too long or stopping too early. [click] This keeps values from turning into hidden parameters. [click] [click] [click] [click] These make context canceled say why. The linters and xctx check part of the list on every pull request.
 -->
 ---
 layout: two-cols
@@ -1512,8 +1514,8 @@ title: Further reading
 #### Docs and style guides
 
 - [Package context](https://pkg.go.dev/context)
-- [Go 1.20 release notes: context](https://go.dev/doc/go1.20#context)
-- [Go 1.21 release notes: context](https://go.dev/doc/go1.21#context)
+- [Go 1.20 release notes: context](https://go.dev/doc/go1.20#contextpkgcontext)
+- [Go 1.21 release notes: context](https://go.dev/doc/go1.21#contextpkgcontext)
 - [Google Go style guide: Contexts](https://google.github.io/styleguide/go/decisions#contexts)
 - [Google Go style guide: Custom contexts](https://google.github.io/styleguide/go/decisions#custom-contexts)
 
