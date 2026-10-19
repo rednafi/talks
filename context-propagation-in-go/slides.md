@@ -338,14 +338,14 @@ title: Each With function makes a child, so contexts form a tree
 <CtxTree />
 <div class="stack">
 <p class="muted" v-click="[6, 7]">The 2s timeout stops only the branch below it.</p>
-<p class="muted" v-click="7">When the client hangs up, everything below the request stops. The WithoutCancel branch keeps going.</p>
+<p class="muted" v-click="7">When the client hangs up, everything below <code>r.Context()</code> stops. The WithoutCancel branch keeps going.</p>
 </div>
 </div>
 
 <!--
-[click] Each child has one parent, so the contexts in a request form a tree. Background is the root. The server gives each request its own context.
+[click] Each child has one parent, so the contexts in a request form a tree. Background is the root.
 
-[click] WithCancel returns a child and a cancel function. The server cancels the request context when the client goes away.
+[click] WithCancel returns a child and a cancel function. The net/http server calls it for each request. That child is r.Context(). The server cancels it when the client hangs up.
 
 [click] WithTimeout does the same with a timer. Here the handler gives the query and the RPC two seconds.
 

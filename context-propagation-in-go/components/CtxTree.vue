@@ -15,7 +15,7 @@ type N = { id: string; x: number; y: number; label: string; ctx?: boolean; at: n
 const BW = 156, BH = 56, EW = 144, EH = 60
 const nodes: N[] = [
   { id: 'root', x: 320, y: 32, label: 'Background()', ctx: true, at: 0 },
-  { id: 'req', x: 320, y: 128, label: 'request ctx', ctx: true, at: 0, stop: 6 },
+  { id: 'req', x: 320, y: 128, label: 'r.Context()', ctx: true, at: 0, stop: 6 },
   { id: 't', x: 160, y: 228, label: 'WithTimeout\n2s', ctx: true, at: 2, stop: 5 },
   { id: 'v', x: 480, y: 228, label: 'WithValue\ntrace ID', ctx: true, at: 3, stop: 6 },
   { id: 'db', x: 80, y: 332, label: 'db query', at: 2, stop: 5 },
@@ -68,6 +68,7 @@ const lines = (n: N) => n.label.split('\n')
       </text>
       <g class="ct-x"><path v-for="(p, j) in cross[n.id]" :key="j" :d="p.d" :stroke-width="p.sw" /></g>
     </g>
+ <text class="ct-note" :class="{ on: c >= 1 }" x="306" y="82" text-anchor="end">the server calls WithCancel</text>
     <text class="ct-ev end" :class="{ on: c === 5 }" x="70" y="190">timeout fires</text>
     <text class="ct-ev start" :class="{ on: c >= 6 }" x="414" y="84">client hangs up</text>
   </svg>
@@ -92,6 +93,8 @@ const lines = (n: N) => n.label.split('\n')
 .ct-edge.stop { color: color-mix(in oklab, var(--fg-dim) 45%, transparent); }
 .ct-ev { font: 19px 'Virgil', var(--font-body); fill: #ff9e64; opacity: 0; transition: opacity 0.3s; }
 .ct-ev.on { opacity: 1; }
+.ct-note { font: 17px 'Virgil', var(--font-body); fill: var(--fg-dim); opacity: 0; transition: opacity 0.3s; }
+.ct-note.on { opacity: 1; }
 .ct-ev.start { text-anchor: start; }
 .ct-ev.end { text-anchor: start; }
 </style>
