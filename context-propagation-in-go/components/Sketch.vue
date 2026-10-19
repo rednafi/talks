@@ -13,6 +13,7 @@
 //   { text: 'label', x, y, size?, anchor?, color?, mono?, at? }
 //   { cross: [cx, cy, r], color?, at? }
 //   { check: [cx, cy, r], color?, at? }
+//   { flag: [x, y], text?, color?, at? }   a pole planted at (x, y), number on the pennant
 // color (stroke) and tc (text): fg | dim | line | accent | info | dont | do
 // `fill: true` hachures the shape in its stroke color; `fs: 'cross-hatch'` cross-fills it.
 // All text, `mono` too, is set in Virgil, so a diagram reads as one drawing.
@@ -34,7 +35,7 @@ const shapes = computed(() => (props.items as any[]).map((it, i) => {
   const seed = (it.seed ?? i + 1) * 7
   const o = base(seed, {
     strokeWidth: it.sw ?? 1.7,
-    strokeLineDash: it.dashed ? [7, 6] : undefined,
+    disableMultiStroke: !!it.dashed,
     fill: it.fill ? 'currentColor' : undefined,
     roughness: it.roughness ?? 1.1,
     fillStyle: it.fs ?? 'hachure',
@@ -82,6 +83,13 @@ const shapes = computed(() => (props.items as any[]).map((it, i) => {
     const [cx, cy, r] = it.check
     ds = [gen.linearPath([[cx - r, cy], [cx - r * 0.3, cy + r * 0.7], [cx + r, cy - r * 0.8]], o)]
     color = it.color ?? 'do'
+  } else if (it.flag) {
+    const [x, y] = it.flag
+    const top = y - 50
+    const pen: [number, number][] = [[x, top], [x + 40, top + 12], [x, top + 24]]
+    ds = [gen.line(x, y, x, top, { ...o, strokeWidth: 2 }), gen.polygon(pen, { ...o, fill: 'currentColor', fillStyle: 'solid' })]
+    if (it.text) label = { x: x + 15, y: top + 12, lines: [String(it.text)] }
+    color = it.color ?? 'accent'
   } else if (it.text !== undefined) {
     label = { x: it.x, y: it.y, lines: lines(it.text) }
   }
@@ -90,11 +98,12 @@ const shapes = computed(() => (props.items as any[]).map((it, i) => {
     at: it.at ?? 0,
     until: it.until ?? Infinity,
     color,
-    tc: it.tc ?? (it.text !== undefined && !it.box && !it.ellipse && !it.diamond ? color : 'fg'),
+    tc: it.tc ?? (it.flag ? 'bg' : it.text !== undefined && !it.box && !it.ellipse && !it.diamond ? color : 'fg'),
     size: it.size ?? 20,
     anchor: it.anchor ?? 'middle',
     mono: !!it.mono,
     filled: !!it.fill,
+    dash: it.dashed ? '8 7' : undefined,
     bg: it.nobg ? null : bg,
     paths: toPaths(ds),
     label,
@@ -115,7 +124,7 @@ const shown = (s: { at: number; until: number }) => $clicks.value >= s.at && $cl
       <path
         v-for="(p, j) in s.paths" :key="j" :d="p.d"
         :fill="p.solid ? 'currentColor' : 'none'" stroke="currentColor" :stroke-width="p.sw"
-        :class="{ hach: p.hach }"
+        :class="{ hach: p.hach }" :stroke-dasharray="p.hach || p.solid ? undefined : s.dash"
       />
       <text
         v-if="s.label"
@@ -149,6 +158,7 @@ const shown = (s: { at: number; until: number }) => $clicks.value >= s.at && $cl
 .sk-dont { color: var(--dont); }
 .sk-do { color: var(--do); }
 .tc-fg { fill: var(--fg); }
+.tc-bg { fill: var(--bg); font-weight: 700; }
 .tc-dim { fill: var(--fg-dim); }
 .tc-line { fill: var(--fg-dim); }
 .tc-accent { fill: var(--accent); }
